@@ -23,22 +23,22 @@ import RestBase, {
 
 ## 接口路由总览
 
-| 接口 | 方法 | 说明 | 客户端方法 |
-|:-----|:-----|:-----|:-----------|
-| `/api/health` | GET | 健康检查 | `rb.health()` |
-| `/api/auth/login` | POST | 登录 | `rb.auth.login()` |
-| `/api/auth/register` | POST | 注册 | `rb.auth.register()` |
-| `/api/auth/profile` | GET | 获取用户资料 | `rb.auth.getProfile()` |
-| `/api/auth/profile` | POST | 更新用户资料 | `rb.auth.updateProfile()` |
-| `/api/meta/tables` | GET | 所有表元数据 | `rb.tables()` |
-| `/api/meta/tables/:name` | GET | 单表元数据 | `rb.tableMeta(name)` |
-| `/api/meta/sync` | GET | 同步表结构 | `rb.syncMeta()` |
-| `/api/query/:table` | **POST** | **Body 查询（前端推荐）** | `table.query().exec()` |
-| `/api/delete/:table` | **POST** | **Body 条件删除** | `table.deleteWhere().exec()` |
-| `/api/data/:table` | POST | 创建 | `table.create()` |
-| `/api/data/:table` | PUT | Upsert | `table.put()` |
-| `/api/data/:table/:id` | GET | 按主键获取 | `table.getByPk()` |
-| `/api/data/:table/:id` | DELETE | 按主键删除 | `table.deleteByPk()` |
+| 接口                       | 方法       | 说明                | 客户端方法                        |
+|:-------------------------|:---------|:------------------|:-----------------------------|
+| `/api/health`            | GET      | 健康检查              | `rb.health()`                |
+| `/api/auth/login`        | POST     | 登录                | `rb.auth.login()`            |
+| `/api/auth/register`     | POST     | 注册                | `rb.auth.register()`         |
+| `/api/auth/profile`      | GET      | 获取用户资料            | `rb.auth.getProfile()`       |
+| `/api/auth/profile`      | POST     | 更新用户资料            | `rb.auth.updateProfile()`    |
+| `/api/meta/tables`       | GET      | 所有表元数据            | `rb.tables()`                |
+| `/api/meta/tables/:name` | GET      | 单表元数据             | `rb.tableMeta(name)`         |
+| `/api/meta/sync`         | GET      | 同步表结构             | `rb.syncMeta()`              |
+| `/api/query/:table`      | **POST** | **Body 查询（前端推荐）** | `table.query().exec()`       |
+| `/api/delete/:table`     | **POST** | **Body 条件删除**     | `table.deleteWhere().exec()` |
+| `/api/data/:table`       | POST     | 创建                | `table.create()`             |
+| `/api/data/:table`       | PUT      | Upsert            | `table.put()`                |
+| `/api/data/:table/:id`   | GET      | 按主键获取             | `table.getByPk()`            |
+| `/api/data/:table/:id`   | DELETE   | 按主键删除             | `table.deleteByPk()`         |
 
 ---
 
@@ -69,16 +69,16 @@ const list = await products.query()
 const rb = new RestBase("http://localhost:3333");
 ```
 
-| 方法 | 返回类型 | 说明 |
-|:-----|:---------|:-----|
-| `rb.auth` | `AuthClient` | 鉴权客户端 |
-| `rb.table<T>(name)` | `TableClient<T>` | 获取表操作客户端（可指定泛型） |
-| `rb.health()` | `Promise<ApiResponse>` | 健康检查 |
-| `rb.tables()` | `Promise<ApiResponse<TableMeta[]>>` | 获取所有表元数据（不含 users） |
-| `rb.tableMeta(name)` | `Promise<ApiResponse<TableMeta \| null>>` | 获取单表元数据（不存在返回 null） |
-| `rb.syncMeta()` | `Promise<ApiResponse<TableMeta[]>>` | 运行时同步 DB 表结构 |
-| `rb.setHeader(k, v)` | `this` | 设置自定义请求头 |
-| `rb.setRequestId(id)` | `this` | 设置请求追踪 ID（`X-Request-Id`） |
+| 方法                    | 返回类型                                      | 说明                        |
+|:----------------------|:------------------------------------------|:--------------------------|
+| `rb.auth`             | `AuthClient`                              | 鉴权客户端                     |
+| `rb.table<T>(name)`   | `TableClient<T>`                          | 获取表操作客户端（可指定泛型）           |
+| `rb.health()`         | `Promise<ApiResponse>`                    | 健康检查                      |
+| `rb.tables()`         | `Promise<ApiResponse<TableMeta[]>>`       | 获取所有表元数据（不含 users）        |
+| `rb.tableMeta(name)`  | `Promise<ApiResponse<TableMeta \| null>>` | 获取单表元数据（不存在返回 null）       |
+| `rb.syncMeta()`       | `Promise<ApiResponse<TableMeta[]>>`       | 运行时同步 DB 表结构              |
+| `rb.setHeader(k, v)`  | `this`                                    | 设置自定义请求头                  |
+| `rb.setRequestId(id)` | `this`                                    | 设置请求追踪 ID（`X-Request-Id`） |
 
 **TableMeta 结构：**
 
@@ -166,14 +166,14 @@ interface Product {
 const typedProducts = rb.table<Product>("products");
 ```
 
-| 方法 | 说明 | 返回 |
-|:-----|:-----|:-----|
-| `table.query()` | 创建链式查询（POST /api/query/:table） | `QueryBuilder<T>` |
-| `table.getByPk(id)` | 按主键获取（GET /api/data/:table/:id） | `ApiResponse<T \| null>` |
-| `table.create(data)` | 创建（POST /api/data/:table） | `ApiResponse<{ created: unknown[] }>` |
-| `table.put(data)` | Upsert（PUT /api/data/:table） | `ApiResponse<{ created: unknown[]; updated: unknown[] }>` |
-| `table.deleteByPk(id)` | 按主键删除（DELETE /api/data/:table/:id） | `ApiResponse<{ deleted: unknown[] }>` |
-| `table.deleteWhere()` | 创建链式条件删除（POST /api/delete/:table） | `DeleteBuilder` |
+| 方法                     | 说明                                 | 返回                                                        |
+|:-----------------------|:-----------------------------------|:----------------------------------------------------------|
+| `table.query()`        | 创建链式查询（POST /api/query/:table）     | `QueryBuilder<T>`                                         |
+| `table.getByPk(id)`    | 按主键获取（GET /api/data/:table/:id）    | `ApiResponse<T \| null>`                                  |
+| `table.create(data)`   | 创建（POST /api/data/:table）          | `ApiResponse<{ created: unknown[] }>`                     |
+| `table.put(data)`      | Upsert（PUT /api/data/:table）       | `ApiResponse<{ created: unknown[]; updated: unknown[] }>` |
+| `table.deleteByPk(id)` | 按主键删除（DELETE /api/data/:table/:id） | `ApiResponse<{ deleted: unknown[] }>`                     |
+| `table.deleteWhere()`  | 创建链式条件删除（POST /api/delete/:table）  | `DeleteBuilder`                                           |
 
 ### CRUD 示例
 
@@ -242,7 +242,8 @@ const result = await products.query()
 
 ### `.select(...fields)` — 类型安全投影
 
-`select()` 利用 TypeScript `const` 泛型参数 + 模板字面量类型 + 递归条件类型，在**编译期**自动推导查询结果类型 `S`。`exec()` / `data()` / `first()` 的返回类型都跟随 `S` 变化。
+`select()` 利用 TypeScript `const` 泛型参数 + 模板字面量类型 + 递归条件类型，在**编译期**自动推导查询结果类型 `S`。`exec()` / `data()` / `first()` 的返回类型都跟随
+`S` 变化。
 
 ```ts
 import { sel, agg } from "./restbase-client";
@@ -317,16 +318,16 @@ d[0]["avg:price"]; // ✅ number
 
 #### 类型推导规则汇总
 
-| 参数格式 | 示例 | 推导结果 |
-|:---------|:-----|:---------|
-| `keyof T` 字符串 | `"name"` | `{ name: T["name"] }` |
-| `"func:field:alias"` | `"count:id:total"` | `{ total: number }` |
-| `"field:alias"` (field ∈ T) | `"price:unitPrice"` | `{ unitPrice: T["price"] }` |
-| `"func:field"` (func ∉ T) | `"count:id"` | `{ "count:id": number }` |
-| `sel(field)` | `sel("name")` | `{ name: T["name"] }` |
-| `sel(field, alias)` | `sel("price","up")` | `{ up: T["price"] }` |
-| `agg(fn, field)` | `agg("count","id")` | `{ "count:id": number }` |
-| `agg(fn, field, alias)` | `agg("count","id","total")` | `{ total: number }` |
+| 参数格式                        | 示例                          | 推导结果                        |
+|:----------------------------|:----------------------------|:----------------------------|
+| `keyof T` 字符串               | `"name"`                    | `{ name: T["name"] }`       |
+| `"func:field:alias"`        | `"count:id:total"`          | `{ total: number }`         |
+| `"field:alias"` (field ∈ T) | `"price:unitPrice"`         | `{ unitPrice: T["price"] }` |
+| `"func:field"` (func ∉ T)   | `"count:id"`                | `{ "count:id": number }`    |
+| `sel(field)`                | `sel("name")`               | `{ name: T["name"] }`       |
+| `sel(field, alias)`         | `sel("price","up")`         | `{ up: T["price"] }`        |
+| `agg(fn, field)`            | `agg("count","id")`         | `{ "count:id": number }`    |
+| `agg(fn, field, alias)`     | `agg("count","id","total")` | `{ total: number }`         |
 
 ### `.orderAsc()` / `.orderDesc()` — 排序
 
@@ -352,12 +353,12 @@ d[0]["avg:price"]; // ✅ number
 
 ### 执行方法
 
-| 方法 | 返回类型 | 说明 |
-|:-----|:---------|:-----|
-| `.exec()` | `Promise<ApiResponse<S[]>>` | 完整响应（S 为 select 推导的投影类型，默认 T） |
-| `.data()` | `Promise<S[]>` | 仅返回数据数组 |
-| `.first()` | `Promise<S \| null>` | 返回第一条（自动 `page(1,1)`） |
-| `.build()` | `Record<string, unknown>` | 构建请求 Body（不执行，用于调试） |
+| 方法         | 返回类型                        | 说明                            |
+|:-----------|:----------------------------|:------------------------------|
+| `.exec()`  | `Promise<ApiResponse<S[]>>` | 完整响应（S 为 select 推导的投影类型，默认 T） |
+| `.data()`  | `Promise<S[]>`              | 仅返回数据数组                       |
+| `.first()` | `Promise<S \| null>`        | 返回第一条（自动 `page(1,1)`）         |
+| `.build()` | `Record<string, unknown>`   | 构建请求 Body（不执行，用于调试）           |
 
 ---
 
@@ -393,23 +394,23 @@ await products.deleteWhere()
 
 ## 条件运算符速查
 
-| 函数 | SQL | 示例 | 值类型 |
-|:-----|:----|:-----|:-------|
-| `eq(f, v)` | `=` | `eq("name", "test")` | 标量 |
-| `ne(f, v)` | `!=` | `ne("status", 0)` | 标量 |
-| `gt(f, v)` | `>` | `gt("price", 100)` | 标量 |
-| `ge(f, v)` | `>=` | `ge("age", 18)` | 标量 |
-| `lt(f, v)` | `<` | `lt("stock", 10)` | 标量 |
-| `le(f, v)` | `<=` | `le("rating", 3)` | 标量 |
-| `isNull(f)` | `IS NULL` | `isNull("desc")` | — |
-| `isNotNull(f)` | `IS NOT NULL` | `isNotNull("email")` | — |
-| `like(f, p)` | `LIKE` | `like("name", "%test%")` | 字符串（`%` 通配） |
-| `nlike(f, p)` | `NOT LIKE` | `nlike("name", "%x%")` | 字符串 |
-| `isIn(f, arr)` | `IN (...)` | `isIn("id", [1, 2, 3])` | 数组 |
-| `notIn(f, arr)` | `NOT IN` | `notIn("status", [0])` | 数组 |
-| `between(f, lo, hi)` | `BETWEEN` | `between("price", 10, 100)` | 两个标量 |
-| `and(...c)` | `AND` | `and(eq("a",1), gt("b",2))` | Condition[] |
-| `or(...c)` | `OR` | `or(eq("a",1), eq("a",2))` | Condition[] |
+| 函数                   | SQL           | 示例                          | 值类型         |
+|:---------------------|:--------------|:----------------------------|:------------|
+| `eq(f, v)`           | `=`           | `eq("name", "test")`        | 标量          |
+| `ne(f, v)`           | `!=`          | `ne("status", 0)`           | 标量          |
+| `gt(f, v)`           | `>`           | `gt("price", 100)`          | 标量          |
+| `ge(f, v)`           | `>=`          | `ge("age", 18)`             | 标量          |
+| `lt(f, v)`           | `<`           | `lt("stock", 10)`           | 标量          |
+| `le(f, v)`           | `<=`          | `le("rating", 3)`           | 标量          |
+| `isNull(f)`          | `IS NULL`     | `isNull("desc")`            | —           |
+| `isNotNull(f)`       | `IS NOT NULL` | `isNotNull("email")`        | —           |
+| `like(f, p)`         | `LIKE`        | `like("name", "%test%")`    | 字符串（`%` 通配） |
+| `nlike(f, p)`        | `NOT LIKE`    | `nlike("name", "%x%")`      | 字符串         |
+| `isIn(f, arr)`       | `IN (...)`    | `isIn("id", [1, 2, 3])`     | 数组          |
+| `notIn(f, arr)`      | `NOT IN`      | `notIn("status", [0])`      | 数组          |
+| `between(f, lo, hi)` | `BETWEEN`     | `between("price", 10, 100)` | 两个标量        |
+| `and(...c)`          | `AND`         | `and(eq("a",1), gt("b",2))` | Condition[] |
+| `or(...c)`           | `OR`          | `or(eq("a",1), eq("a",2))`  | Condition[] |
 
 > **注意**：Body 模式的 LIKE 直接使用 SQL `%` 通配符，不需要用 `*` 替换。
 
@@ -417,12 +418,12 @@ await products.deleteWhere()
 
 ## SELECT 辅助函数
 
-| 函数 | 说明 | 示例 | 类型推导 |
-|:-----|:-----|:-----|:---------|
-| `sel(field)` | 选择字段 | `sel("name")` | `{ name: T["name"] }` |
-| `sel(field, alias)` | 字段重命名 | `sel("price", "unitPrice")` | `{ unitPrice: T["price"] }` |
-| `agg(fn, field)` | 聚合（alias 默认 `fn:field`） | `agg("count", "id")` | `{ "count:id": number }` |
-| `agg(fn, field, alias)` | 聚合 + 自定义别名 | `agg("avg", "price", "avgP")` | `{ avgP: number }` |
+| 函数                      | 说明                      | 示例                            | 类型推导                        |
+|:------------------------|:------------------------|:------------------------------|:----------------------------|
+| `sel(field)`            | 选择字段                    | `sel("name")`                 | `{ name: T["name"] }`       |
+| `sel(field, alias)`     | 字段重命名                   | `sel("price", "unitPrice")`   | `{ unitPrice: T["price"] }` |
+| `agg(fn, field)`        | 聚合（alias 默认 `fn:field`） | `agg("count", "id")`          | `{ "count:id": number }`    |
+| `agg(fn, field, alias)` | 聚合 + 自定义别名              | `agg("avg", "price", "avgP")` | `{ avgP: number }`          |
 
 支持的聚合函数：`avg` / `max` / `min` / `count` / `sum`
 
@@ -527,18 +528,18 @@ if (res.code !== "OK") {
 }
 ```
 
-| code | 说明 |
-|:-----|:-----|
-| `OK` | 成功 |
-| `AUTH_ERROR` | 鉴权失败（未登录/密码错误/Token过期/用户已存在） |
-| `VALIDATION_ERROR` | 请求体校验失败 |
-| `NOT_FOUND` | 表不存在 |
-| `CONFLICT` | 记录已存在（主键冲突） |
-| `TABLE_ERROR` | 表无主键（不支持按 ID 操作） |
-| `FORBIDDEN` | 禁止操作用户表 |
-| `QUERY_ERROR` | 查询语法错误 |
-| `RATE_LIMITED` | API 请求频率超限 |
-| `SYS_ERROR` | 系统异常 |
+| code               | 说明                           |
+|:-------------------|:-----------------------------|
+| `OK`               | 成功                           |
+| `AUTH_ERROR`       | 鉴权失败（未登录/密码错误/Token过期/用户已存在） |
+| `VALIDATION_ERROR` | 请求体校验失败                      |
+| `NOT_FOUND`        | 表不存在                         |
+| `CONFLICT`         | 记录已存在（主键冲突）                  |
+| `TABLE_ERROR`      | 表无主键（不支持按 ID 操作）             |
+| `FORBIDDEN`        | 禁止操作用户表                      |
+| `QUERY_ERROR`      | 查询语法错误                       |
+| `RATE_LIMITED`     | API 请求频率超限                   |
+| `SYS_ERROR`        | 系统异常                         |
 
 ---
 

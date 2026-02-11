@@ -44,23 +44,23 @@ bun run build:windows      # Windows x64
 
 ## 环境变量
 
-| 变量 | 说明 | 默认值 |
-|:-----|:-----|:-------|
-| `SVR_PORT` | 服务端口 | `3333` |
-| `SVR_STATIC` | 静态文件目录（前端托管） | 空 |
-| `SVR_API_LIMIT` | API 限流（每秒每接口请求数） | `100` |
-| `DB_URL` | 数据库连接串 | `sqlite://:memory:` |
-| `DB_AUTH_TABLE` | 用户表名 | `users` |
-| `DB_AUTH_FIELD` | owner 字段名 | `owner` |
-| `DB_AUTH_FIELD_NULL_OPEN` | owner=NULL 视为公开 | `false` |
-| `DB_INIT_SQL` | 启动时执行的 SQL 文件 | 空 |
-| `AUTH_JWT_SECRET` | JWT 密钥 | `restbase` |
-| `AUTH_JWT_EXP` | JWT 过期秒数 | `43200` |
-| `AUTH_BASIC_OPEN` | 开启 Basic Auth | `true` |
-| `LOG_LEVEL` | `ERROR` / `INFO` / `DEBUG` | `INFO` |
-| `LOG_CONSOLE` | 控制台输出 | `true` |
-| `LOG_FILE` | 日志文件路径 | 空 |
-| `LOG_RETAIN_DAYS` | 日志保留天数 | `7` |
+| 变量                        | 说明                         | 默认值                 |
+|:--------------------------|:---------------------------|:--------------------|
+| `SVR_PORT`                | 服务端口                       | `3333`              |
+| `SVR_STATIC`              | 静态文件目录（前端托管）               | 空                   |
+| `SVR_API_LIMIT`           | API 限流（每秒每接口请求数）           | `100`               |
+| `DB_URL`                  | 数据库连接串                     | `sqlite://:memory:` |
+| `DB_AUTH_TABLE`           | 用户表名                       | `users`             |
+| `DB_AUTH_FIELD`           | owner 字段名                  | `owner`             |
+| `DB_AUTH_FIELD_NULL_OPEN` | owner=NULL 视为公开            | `false`             |
+| `DB_INIT_SQL`             | 启动时执行的 SQL 文件              | 空                   |
+| `AUTH_JWT_SECRET`         | JWT 密钥                     | `restbase`          |
+| `AUTH_JWT_EXP`            | JWT 过期秒数                   | `43200`             |
+| `AUTH_BASIC_OPEN`         | 开启 Basic Auth              | `true`              |
+| `LOG_LEVEL`               | `ERROR` / `INFO` / `DEBUG` | `INFO`              |
+| `LOG_CONSOLE`             | 控制台输出                      | `true`              |
+| `LOG_FILE`                | 日志文件路径                     | 空                   |
+| `LOG_RETAIN_DAYS`         | 日志保留天数                     | `7`                 |
 
 ## 测试
 
@@ -70,12 +70,12 @@ bun test rest.test.ts    # 137+ 用例
 
 ## 文档
 
-| 文档 | 内容 |
-|:-----|:-----|
-| [documents/server.md](documents/server.md) | 服务端详细文档 — 配置、全部 API 接口说明与示例、日志、部署 |
-| [documents/client.md](documents/client.md) | 前端客户端文档 — 安装、API 速查、QueryBuilder 链式调用、类型安全 SELECT |
-| [documents/db_design.md](documents/db_design.md) | 数据库设计指南 — 表结构规范、约束、索引、设计模式与检查清单 |
-| [documents/design.md](documents/design.md) | 需求与设计文档 — 架构设计、技术规格、完整接口定义 |
+| 文档                                               | 内容                                                |
+|:-------------------------------------------------|:--------------------------------------------------|
+| [documents/server.md](documents/server.md)       | 服务端详细文档 — 配置、全部 API 接口说明与示例、日志、部署                 |
+| [documents/client.md](documents/client.md)       | 前端客户端文档 — 安装、API 速查、QueryBuilder 链式调用、类型安全 SELECT |
+| [documents/db_design.md](documents/db_design.md) | 数据库设计指南 — 表结构规范、约束、索引、设计模式与检查清单                   |
+| [documents/design.md](documents/design.md)       | 需求与设计文档 — 架构设计、技术规格、完整接口定义                        |
 
 ## 文件结构
 

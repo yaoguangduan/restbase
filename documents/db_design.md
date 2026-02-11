@@ -8,13 +8,13 @@
 
 RestBase 在启动时自动分析表结构，以下是它对数据库的**硬性要求**和**软性建议**：
 
-| 项目 | 要求 | 说明 |
-|:-----|:-----|:-----|
-| 主键 | **强烈建议** | 无主键的表不支持 `GET /:id`、`DELETE /:id`、`PUT` Upsert；仅支持列表查询和 POST 插入 |
-| 主键类型 | 自增整数 / UUID | RestBase 通过 `PRAGMA table_info` / `information_schema` 自动识别 PK 字段 |
-| 用户表 | **必须** | 至少包含 `id`、`username`（UNIQUE）、`password` 三个字段，表名默认 `users`（可配） |
-| owner 字段 | 可选 | 含此字段的表自动启用租户隔离，字段名默认 `owner`（可配） |
-| 字段名 | 不限制 | 推荐 `snake_case`，避免使用 SQL 保留字（如 `order`、`group`、`select`） |
+| 项目       | 要求          | 说明                                                                |
+|:---------|:------------|:------------------------------------------------------------------|
+| 主键       | **强烈建议**    | 无主键的表不支持 `GET /:id`、`DELETE /:id`、`PUT` Upsert；仅支持列表查询和 POST 插入   |
+| 主键类型     | 自增整数 / UUID | RestBase 通过 `PRAGMA table_info` / `information_schema` 自动识别 PK 字段 |
+| 用户表      | **必须**      | 至少包含 `id`、`username`（UNIQUE）、`password` 三个字段，表名默认 `users`（可配）     |
+| owner 字段 | 可选          | 含此字段的表自动启用租户隔离，字段名默认 `owner`（可配）                                  |
+| 字段名      | 不限制         | 推荐 `snake_case`，避免使用 SQL 保留字（如 `order`、`group`、`select`）          |
 
 ---
 
@@ -44,12 +44,12 @@ id CHAR(36) PRIMARY KEY DEFAULT (UUID())
 
 ### 2.2 注意事项
 
-| 场景 | 行为 |
-|:-----|:-----|
-| POST 创建 | 返回 `{ created: [主键值列表] }` |
-| PUT Upsert | 请求体中含主键且存在 → UPDATE；不含或不存在 → INSERT |
-| DELETE /:id | 路径参数即主键值 |
-| 复合主键 | **不支持** — RestBase 只识别单列主键 |
+| 场景          | 行为                                  |
+|:------------|:------------------------------------|
+| POST 创建     | 返回 `{ created: [主键值列表] }`           |
+| PUT Upsert  | 请求体中含主键且存在 → UPDATE；不含或不存在 → INSERT |
+| DELETE /:id | 路径参数即主键值                            |
+| 复合主键        | **不支持** — RestBase 只识别单列主键          |
 
 > 如果表确实不需要按 ID 操作（如纯日志表），可以不设主键，但会失去按 ID 查/删/Upsert 的能力。
 
@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS "users" (
 ```
 
 **规则：**
+
 - `id`、`username`、`password` 三个字段**不可缺少**，否则启动报错
 - 扩展字段可通过 `GET /api/auth/profile` 读取、`POST /api/auth/profile` 更新
 - `GET /api/auth/profile` 响应自动**去掉 `id` 和 `password`**
@@ -156,11 +157,11 @@ CREATE TABLE "logs" (
 
 owner 字段类型应与用户表的 `id` 字段类型一致：
 
-| 用户表 id 类型 | owner 字段类型 |
-|:---------------|:---------------|
-| `INTEGER` (自增) | `INTEGER` |
-| `TEXT` (UUID) | `TEXT` |
-| `INT` (MySQL) | `INT` |
+| 用户表 id 类型      | owner 字段类型 |
+|:---------------|:-----------|
+| `INTEGER` (自增) | `INTEGER`  |
+| `TEXT` (UUID)  | `TEXT`     |
+| `INT` (MySQL)  | `INT`      |
 
 ---
 
@@ -170,31 +171,31 @@ owner 字段类型应与用户表的 `id` 字段类型一致：
 
 SQLite 是动态类型，以下为推荐的类型亲和性：
 
-| 用途 | 类型 | 示例 |
-|:-----|:-----|:-----|
-| 自增 ID | `INTEGER PRIMARY KEY AUTOINCREMENT` | `"id" INTEGER PRIMARY KEY AUTOINCREMENT` |
-| 短文本 | `TEXT` | `"name" TEXT NOT NULL` |
-| 长文本 | `TEXT` | `"description" TEXT` |
-| 整数 | `INTEGER` | `"stock" INTEGER DEFAULT 0` |
-| 浮点数 | `REAL` | `"price" REAL NOT NULL` |
-| 布尔值 | `INTEGER` | `"is_active" INTEGER DEFAULT 1`（0/1） |
-| 日期时间 | `TEXT` | `"created_at" TEXT DEFAULT (datetime('now'))` |
-| JSON | `TEXT` | `"tags" TEXT`（存 JSON 字符串） |
+| 用途    | 类型                                  | 示例                                            |
+|:------|:------------------------------------|:----------------------------------------------|
+| 自增 ID | `INTEGER PRIMARY KEY AUTOINCREMENT` | `"id" INTEGER PRIMARY KEY AUTOINCREMENT`      |
+| 短文本   | `TEXT`                              | `"name" TEXT NOT NULL`                        |
+| 长文本   | `TEXT`                              | `"description" TEXT`                          |
+| 整数    | `INTEGER`                           | `"stock" INTEGER DEFAULT 0`                   |
+| 浮点数   | `REAL`                              | `"price" REAL NOT NULL`                       |
+| 布尔值   | `INTEGER`                           | `"is_active" INTEGER DEFAULT 1`（0/1）          |
+| 日期时间  | `TEXT`                              | `"created_at" TEXT DEFAULT (datetime('now'))` |
+| JSON  | `TEXT`                              | `"tags" TEXT`（存 JSON 字符串）                     |
 
 > SQLite 没有原生布尔和日期类型，用 INTEGER(0/1) 和 TEXT(ISO 8601) 是最佳实践。
 
 ### 5.2 MySQL
 
-| 用途 | 类型 | 示例 |
-|:-----|:-----|:-----|
-| 自增 ID | `INT AUTO_INCREMENT` | `id INT AUTO_INCREMENT PRIMARY KEY` |
-| 短文本 | `VARCHAR(N)` | `name VARCHAR(255) NOT NULL` |
-| 长文本 | `TEXT` / `LONGTEXT` | `description TEXT` |
-| 整数 | `INT` / `BIGINT` | `stock INT DEFAULT 0` |
-| 浮点数 | `DECIMAL(M,D)` | `price DECIMAL(10,2) NOT NULL` |
-| 布尔值 | `TINYINT(1)` | `is_active TINYINT(1) DEFAULT 1` |
-| 日期时间 | `DATETIME` / `TIMESTAMP` | `created_at DATETIME DEFAULT CURRENT_TIMESTAMP` |
-| JSON | `JSON` | `tags JSON` |
+| 用途    | 类型                       | 示例                                              |
+|:------|:-------------------------|:------------------------------------------------|
+| 自增 ID | `INT AUTO_INCREMENT`     | `id INT AUTO_INCREMENT PRIMARY KEY`             |
+| 短文本   | `VARCHAR(N)`             | `name VARCHAR(255) NOT NULL`                    |
+| 长文本   | `TEXT` / `LONGTEXT`      | `description TEXT`                              |
+| 整数    | `INT` / `BIGINT`         | `stock INT DEFAULT 0`                           |
+| 浮点数   | `DECIMAL(M,D)`           | `price DECIMAL(10,2) NOT NULL`                  |
+| 布尔值   | `TINYINT(1)`             | `is_active TINYINT(1) DEFAULT 1`                |
+| 日期时间  | `DATETIME` / `TIMESTAMP` | `created_at DATETIME DEFAULT CURRENT_TIMESTAMP` |
+| JSON  | `JSON`                   | `tags JSON`                                     |
 
 ### 5.3 数值类型识别
 
@@ -220,13 +221,13 @@ CREATE TABLE "products" (
 );
 ```
 
-| 约束 | 作用 | RestBase 行为 |
-|:-----|:-----|:--------------|
-| `NOT NULL` | 禁止空值 | 创建/更新时缺少必填字段 → 数据库报错 → 返回 `SYS_ERROR` |
-| `UNIQUE` | 唯一约束 | 插入重复值 → 返回 `CONFLICT` |
-| `CHECK` | 自定义校验 | 违反约束 → 数据库报错 → 返回 `SYS_ERROR` |
-| `DEFAULT` | 默认值 | 创建时未传该字段 → 数据库自动填充 |
-| `FOREIGN KEY` | 外键关联 | RestBase 不感知外键，但数据库层面仍然生效 |
+| 约束            | 作用    | RestBase 行为                           |
+|:--------------|:------|:--------------------------------------|
+| `NOT NULL`    | 禁止空值  | 创建/更新时缺少必填字段 → 数据库报错 → 返回 `SYS_ERROR` |
+| `UNIQUE`      | 唯一约束  | 插入重复值 → 返回 `CONFLICT`                 |
+| `CHECK`       | 自定义校验 | 违反约束 → 数据库报错 → 返回 `SYS_ERROR`         |
+| `DEFAULT`     | 默认值   | 创建时未传该字段 → 数据库自动填充                    |
+| `FOREIGN KEY` | 外键关联  | RestBase 不感知外键，但数据库层面仍然生效             |
 
 > **重要：** RestBase 不做应用层校验（除 Zod 校验 auth 接口），数据完整性依赖数据库约束。**请充分利用 `NOT NULL`、`CHECK`、`UNIQUE`、`DEFAULT` 保护数据质量。**
 
@@ -251,14 +252,14 @@ CREATE UNIQUE INDEX idx_products_sku ON "products"("sku");
 
 **索引优先级：**
 
-| 优先级 | 字段 | 原因 |
-|:-------|:-----|:-----|
-| **必须** | `owner` | 租户隔离表每次 CRUD 都有 `WHERE owner = ?` |
-| **高** | 高频 WHERE 过滤字段 | 如 `category`、`status`、`created_at` |
-| **高** | UNIQUE 约束字段 | 如 `sku`、`email` |
-| **中** | ORDER BY 排序字段 | 如 `price`、`created_at` |
-| **中** | GROUP BY 分组字段 | 如 `category`、`level` |
-| **低** | 很少查询的字段 | 如 `description`、`tags` |
+| 优先级    | 字段            | 原因                                 |
+|:-------|:--------------|:-----------------------------------|
+| **必须** | `owner`       | 租户隔离表每次 CRUD 都有 `WHERE owner = ?`  |
+| **高**  | 高频 WHERE 过滤字段 | 如 `category`、`status`、`created_at` |
+| **高**  | UNIQUE 约束字段   | 如 `sku`、`email`                    |
+| **中**  | ORDER BY 排序字段 | 如 `price`、`created_at`             |
+| **中**  | GROUP BY 分组字段 | 如 `category`、`level`               |
+| **低**  | 很少查询的字段       | 如 `description`、`tags`             |
 
 ---
 
@@ -428,14 +429,14 @@ CREATE INDEX idx_audit_created ON "audit_logs"("created_at");
 
 ### 9.1 RestBase 不支持的特性
 
-| 特性 | 说明 | 替代方案 |
-|:-----|:-----|:---------|
-| 多表联查（JOIN） | 不支持跨表关联查询 | 创建数据库视图（`CREATE VIEW`），RestBase 可查询视图 |
-| 存储过程 | 不支持调用存储过程 | 在 `DB_INIT_SQL` 中创建，通过视图暴露结果 |
-| 复合主键 | 仅识别单列主键 | 改用单列自增 ID + UNIQUE 联合约束 |
-| 自动迁移 | 不提供 schema migration | 手动管理 SQL 文件或使用 `DB_INIT_SQL` |
-| 字段级权限 | 不支持按字段控制读写权限 | 在前端客户端层面控制展示/提交的字段 |
-| 乐观锁 | 不内置版本号/时间戳冲突检测 | 在表中增加 `version` 字段，业务层面自行处理 |
+| 特性         | 说明                   | 替代方案                                  |
+|:-----------|:---------------------|:--------------------------------------|
+| 多表联查（JOIN） | 不支持跨表关联查询            | 创建数据库视图（`CREATE VIEW`），RestBase 可查询视图 |
+| 存储过程       | 不支持调用存储过程            | 在 `DB_INIT_SQL` 中创建，通过视图暴露结果          |
+| 复合主键       | 仅识别单列主键              | 改用单列自增 ID + UNIQUE 联合约束               |
+| 自动迁移       | 不提供 schema migration | 手动管理 SQL 文件或使用 `DB_INIT_SQL`          |
+| 字段级权限      | 不支持按字段控制读写权限         | 在前端客户端层面控制展示/提交的字段                    |
+| 乐观锁        | 不内置版本号/时间戳冲突检测       | 在表中增加 `version` 字段，业务层面自行处理           |
 
 ### 9.2 视图的妙用
 
@@ -457,15 +458,15 @@ RestBase 会将视图当作普通表暴露，支持查询（但通常不支持�
 
 ### 9.3 常见陷阱
 
-| 陷阱 | 问题 | 解决方案 |
-|:-----|:-----|:---------|
-| 字段名用 SQL 保留字 | `"order"` `"group"` `"select"` 可能引起解析歧义 | 使用 `order_no`、`group_name` 等非保留字 |
-| owner 字段类型不匹配 | users.id 是 INTEGER，owner 是 TEXT | 保持类型一致 |
-| 缺少索引 | 大表查询缓慢 | owner 字段和高频过滤字段必须加索引 |
-| 没有 NOT NULL | 意外存入空值 | 必填字段务必加 `NOT NULL` |
-| 没有 DEFAULT | 创建时必须传所有字段 | 合理设置默认值，减少前端负担 |
-| SQLite 大小写 | SQLite 默认 LIKE 区分大小写 | 使用 `COLLATE NOCASE` 或应用层统一小写 |
-| 无主键的表做 Upsert | PUT 无法判断记录是否存在 | 每张业务表都应有主键 |
+| 陷阱            | 问题                                      | 解决方案                             |
+|:--------------|:----------------------------------------|:---------------------------------|
+| 字段名用 SQL 保留字  | `"order"` `"group"` `"select"` 可能引起解析歧义 | 使用 `order_no`、`group_name` 等非保留字 |
+| owner 字段类型不匹配 | users.id 是 INTEGER，owner 是 TEXT         | 保持类型一致                           |
+| 缺少索引          | 大表查询缓慢                                  | owner 字段和高频过滤字段必须加索引             |
+| 没有 NOT NULL   | 意外存入空值                                  | 必填字段务必加 `NOT NULL`               |
+| 没有 DEFAULT    | 创建时必须传所有字段                              | 合理设置默认值，减少前端负担                   |
+| SQLite 大小写    | SQLite 默认 LIKE 区分大小写                    | 使用 `COLLATE NOCASE` 或应用层统一小写     |
+| 无主键的表做 Upsert | PUT 无法判断记录是否存在                          | 每张业务表都应有主键                       |
 
 ---
 

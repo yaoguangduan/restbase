@@ -14,12 +14,12 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 
 ### 2.1 技术栈
 
-| 组件 | 用途 | 备注 |
-|------|------|------|
-| **Bun** | 运行时 + DB 驱动 (`Bun.SQL`) | 不兼容 Node.js API，优先使用 `Bun.env`、`Bun.file`、`Bun.serve` 等 |
-| **Hono** | HTTP 框架 | 内置 JWT 中间件、requestId 中间件、Zod 集成 |
-| **Zod** | 请求体校验 | 通过 `@hono/zod-validator` 集成 |
-| **pino** | 日志 | 配合 `pino-pretty`（控制台）、`pino-roll`（文件滚动） |
+| 组件       | 用途                      | 备注                                                      |
+|----------|-------------------------|---------------------------------------------------------|
+| **Bun**  | 运行时 + DB 驱动 (`Bun.SQL`) | 不兼容 Node.js API，优先使用 `Bun.env`、`Bun.file`、`Bun.serve` 等 |
+| **Hono** | HTTP 框架                 | 内置 JWT 中间件、requestId 中间件、Zod 集成                         |
+| **Zod**  | 请求体校验                   | 通过 `@hono/zod-validator` 集成                             |
+| **pino** | 日志                      | 控制台纯文本输出、`pino-roll`（文件滚动）                              |
 
 ### 2.2 开发规范
 
@@ -31,23 +31,23 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 
 ## 三、环境变量配置
 
-| 变量 | 说明 | 默认值 |
-|:-----|:-----|:-------|
-| `SVR_PORT` | 服务监听端口 | `3333` |
-| `SVR_STATIC` | 静态文件目录（相对路径，如 `public`），支持 SPA fallback | 空（不启用） |
-| `SVR_API_LIMIT` | API 限流：每秒每个接口允许的最大请求数（0 = 不限流） | `100` |
-| `DB_URL` | 数据库连接串（`sqlite://` 或 `mysql://`） | `sqlite://:memory:` |
-| `DB_AUTH_TABLE` | 用户认证表名 | `users` |
-| `DB_AUTH_FIELD` | 数据表中的 owner 字段名 | `owner` |
-| `DB_AUTH_FIELD_NULL_OPEN` | owner 为 NULL 视为公开数据（查询追加 `OR owner IS NULL`） | `false` |
-| `DB_INIT_SQL` | 启动时执行的 SQL 文件路径（相对于项目根目录） | 空（不执行） |
-| `AUTH_JWT_SECRET` | JWT 签名密钥 | `restbase` |
-| `AUTH_JWT_EXP` | JWT 过期时间（秒） | `43200`（12 小时） |
-| `AUTH_BASIC_OPEN` | 是否开启 Basic Auth | `true` |
-| `LOG_LEVEL` | 日志等级：`ERROR` / `INFO` / `DEBUG` | `INFO` |
-| `LOG_CONSOLE` | 是否输出到控制台 | `true` |
-| `LOG_FILE` | 日志文件路径（如 `log/app.log`） | 空（不写文件） |
-| `LOG_RETAIN_DAYS` | 日志文件保留天数 | `7` |
+| 变量                        | 说明                                           | 默认值                 |
+|:--------------------------|:---------------------------------------------|:--------------------|
+| `SVR_PORT`                | 服务监听端口                                       | `3333`              |
+| `SVR_STATIC`              | 静态文件目录（相对路径，如 `public`），支持 SPA fallback      | 空（不启用）              |
+| `SVR_API_LIMIT`           | API 限流：每秒每个接口允许的最大请求数（0 = 不限流）               | `100`               |
+| `DB_URL`                  | 数据库连接串（`sqlite://` 或 `mysql://`）             | `sqlite://:memory:` |
+| `DB_AUTH_TABLE`           | 用户认证表名                                       | `users`             |
+| `DB_AUTH_FIELD`           | 数据表中的 owner 字段名                              | `owner`             |
+| `DB_AUTH_FIELD_NULL_OPEN` | owner 为 NULL 视为公开数据（查询追加 `OR owner IS NULL`） | `false`             |
+| `DB_INIT_SQL`             | 启动时执行的 SQL 文件路径（相对于项目根目录）                    | 空（不执行）              |
+| `AUTH_JWT_SECRET`         | JWT 签名密钥                                     | `restbase`          |
+| `AUTH_JWT_EXP`            | JWT 过期时间（秒）                                  | `43200`（12 小时）      |
+| `AUTH_BASIC_OPEN`         | 是否开启 Basic Auth                              | `true`              |
+| `LOG_LEVEL`               | 日志等级：`ERROR` / `INFO` / `DEBUG`              | `INFO`              |
+| `LOG_CONSOLE`             | 是否输出到控制台                                     | `true`              |
+| `LOG_FILE`                | 日志文件路径（如 `log/app.log`）                      | 空（不写文件）             |
+| `LOG_RETAIN_DAYS`         | 日志文件保留天数                                     | `7`                 |
 
 ---
 
@@ -58,8 +58,8 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 1. **启动时连接数据库**，失败则 `process.exit(1)` 终止
 2. **自动创建用户表**（`ensureAuthTable`）：确保 `DB_AUTH_TABLE` 指定的表存在且含 `id`、`username`（UNIQUE）、`password` 三个必需字段
 3. **执行初始化 SQL**（`loadInitSql`）：若配置了 `DB_INIT_SQL`，读取文件并执行所有 SQL 语句
-   - 支持 `--` 单行注释，语句以 `;` 分隔
-   - 文件不存在则输出警告日志并跳过
+    - 支持 `--` 单行注释，语句以 `;` 分隔
+    - 文件不存在则输出警告日志并跳过
 4. **表结构分析**（`introspect`）：遍历所有表，获取列名、类型、主键、是否有 owner 字段
 5. **校验用户表**（`validateAuth`）：确认用户表包含 `id`、`username`、`password`
 
@@ -68,18 +68,20 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 - 数据表含 `DB_AUTH_FIELD`（默认 `owner`）字段 → 所有增删改查自动追加 `WHERE owner = 当前用户ID`
 - 创建记录时自动注入 `owner` 值
 - 不含 `owner` 字段的表 → 全局可见，所有已认证用户可访问
-- **`DB_AUTH_FIELD_NULL_OPEN=true`** 时，owner 为 NULL 的记录视为公开数据，查询条件变为 `WHERE (owner = 当前用户ID OR owner IS NULL)`。适用于"部分记录公开、部分私有"的场景（如公共模板 + 用户自定义模板）
+- **`DB_AUTH_FIELD_NULL_OPEN=true`** 时，owner 为 NULL 的记录视为公开数据，查询条件变为 `WHERE (owner = 当前用户ID OR owner IS NULL)`。适用于"
+  部分记录公开、部分私有"的场景（如公共模板 + 用户自定义模板）
 
 ### 4.3 鉴权
 
 同时支持两种认证方式，在 Hono 中间件中统一处理：
 
-| 方式 | Header 格式 | 说明 |
-|:-----|:------------|:-----|
-| **JWT** | `Authorization: Bearer <token>` | 登录/注册后返回 token，payload 含 `{ sub, uid, iat, exp }` |
-| **Basic Auth** | `Authorization: Basic base64(user:pass)` | 每次请求验证用户名密码，可通过 `AUTH_BASIC_OPEN=false` 关闭 |
+| 方式             | Header 格式                                | 说明                                                |
+|:---------------|:-----------------------------------------|:--------------------------------------------------|
+| **JWT**        | `Authorization: Bearer <token>`          | 登录/注册后返回 token，payload 含 `{ sub, uid, iat, exp }` |
+| **Basic Auth** | `Authorization: Basic base64(user:pass)` | 每次请求验证用户名密码，可通过 `AUTH_BASIC_OPEN=false` 关闭        |
 
 **公开路径**（无需鉴权）：
+
 - `POST /api/auth/login`
 - `POST /api/auth/register`
 - `GET /api/health`
@@ -101,37 +103,37 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 
 **错误码一览：**
 
-| code | 触发场景 |
-|:-----|:---------|
-| `OK` | 成功 |
-| `AUTH_ERROR` | 未登录 / 密码错误 / Token 过期 / 用户已存在 |
-| `VALIDATION_ERROR` | Zod 请求体校验失败 |
-| `NOT_FOUND` | 表不存在 |
-| `CONFLICT` | 记录已存在（主键冲突） |
-| `TABLE_ERROR` | 表无主键（不支持按 ID 操作） |
-| `FORBIDDEN` | 禁止直接操作用户认证表（需使用 `/api/auth/*`） |
-| `QUERY_ERROR` | 查询语法错误（无效字段、操作符等） |
-| `RATE_LIMITED` | API 请求频率超限 |
-| `SYS_ERROR` | 未预期的系统异常 |
+| code               | 触发场景                           |
+|:-------------------|:-------------------------------|
+| `OK`               | 成功                             |
+| `AUTH_ERROR`       | 未登录 / 密码错误 / Token 过期 / 用户已存在  |
+| `VALIDATION_ERROR` | Zod 请求体校验失败                    |
+| `NOT_FOUND`        | 表不存在                           |
+| `CONFLICT`         | 记录已存在（主键冲突）                    |
+| `TABLE_ERROR`      | 表无主键（不支持按 ID 操作）               |
+| `FORBIDDEN`        | 禁止直接操作用户认证表（需使用 `/api/auth/*`） |
+| `QUERY_ERROR`      | 查询语法错误（无效字段、操作符等）              |
+| `RATE_LIMITED`     | API 请求频率超限                     |
+| `SYS_ERROR`        | 未预期的系统异常                       |
 
 ### 4.5 日志系统
 
 基于 **pino** 实现结构化日志：
 
-- **控制台**：`pino-pretty` 彩色格式化，含时间戳、级别、请求 ID
+- **控制台**：纯文本格式，含时间戳、级别、请求 ID
 - **文件**：`pino-roll` NDJSON 格式，level/time 可读化
-  - **按天滚动**：每天零点将当前文件重命名为 `{文件名}.{YYYY-MM-DD}`
-  - **按大小滚动**：单文件超过 20MB 时滚动，同一天内多次滚动按序号递增（如 `app.log.2025-02-10.1`、`app.log.2025-02-10.2`）
-  - 当前活跃文件始终为配置的原始路径（如 `app.log`）
-  - 超过 `LOG_RETAIN_DAYS` 的归档文件自动清理
+    - **按天滚动**：每天零点将当前文件重命名为 `{文件名}.{YYYY-MM-DD}`
+    - **按大小滚动**：单文件超过 20MB 时滚动，同一天内多次滚动按序号递增（如 `app.log.2025-02-10.1`、`app.log.2025-02-10.2`）
+    - 当前活跃文件始终为配置的原始路径（如 `app.log`）
+    - 超过 `LOG_RETAIN_DAYS` 的归档文件自动清理
 
 **日志级别行为：**
 
-| 级别 | 输出内容 |
-|:-----|:---------|
-| `ERROR` | 仅错误 |
-| `INFO`（默认） | 每个请求：requestId / method / path / 耗时(ms) |
-| `DEBUG` | 在 INFO 基础上追加：完整 headers、请求体、响应体、SQL 语句及参数 |
+| 级别         | 输出内容                                      |
+|:-----------|:------------------------------------------|
+| `ERROR`    | 仅错误                                       |
+| `INFO`（默认） | 每个请求：requestId / method / path / 耗时(ms)   |
+| `DEBUG`    | 在 INFO 基础上追加：完整 headers、请求体、响应体、SQL 语句及参数 |
 
 **请求 ID**：通过 Hono `requestId` 中间件自动生成 UUID，也允许客户端通过 `X-Request-Id` 请求头携带自定义 ID。所有日志行包含该 ID 以便全链路追踪。
 
@@ -167,9 +169,9 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 
 ### 5.1 健康检查
 
-| 方法 | 路径 | 鉴权 | 说明 |
-|:-----|:-----|:-----|:-----|
-| `GET` | `/api/health` | 否 | 返回 `{ code: "OK", data: { status: "healthy" } }` |
+| 方法    | 路径            | 鉴权 | 说明                                               |
+|:------|:--------------|:---|:-------------------------------------------------|
+| `GET` | `/api/health` | 否  | 返回 `{ code: "OK", data: { status: "healthy" } }` |
 
 ---
 
@@ -280,48 +282,49 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 
 **where 格式**（灵活，以下写法均可，`cond` 内递归支持所有格式）：
 
-| 写法 | 示例 | 说明 |
-|:-----|:-----|:-----|
-| 二元组 | `["name", "test"]` | 默认 `eq` |
-| 三元组 | `["price", "gt", 100]` | 指定操作符 |
-| 对象 | `{"field":"stock","op":"ge","value":50}` | 显式格式 |
-| 逻辑组 | `{"op":"or","cond":[...]}` | `and` / `or` 嵌套 |
-| 单条件简写 | `"where": ["id","eq",1]` | where 本身为一个元组 |
+| 写法    | 示例                                       | 说明              |
+|:------|:-----------------------------------------|:----------------|
+| 二元组   | `["name", "test"]`                       | 默认 `eq`         |
+| 三元组   | `["price", "gt", 100]`                   | 指定操作符           |
+| 对象    | `{"field":"stock","op":"ge","value":50}` | 显式格式            |
+| 逻辑组   | `{"op":"or","cond":[...]}`               | `and` / `or` 嵌套 |
+| 单条件简写 | `"where": ["id","eq",1]`                 | where 本身为一个元组   |
 
 **操作符一览：**
 
-| 操作符 | SQL | 说明 |
-|:-------|:----|:-----|
-| `eq` | `=` | 等于 |
-| `ne` | `!=` | 不等于 |
-| `gt` / `ge` | `>` / `>=` | 大于 / 大于等于 |
-| `lt` / `le` | `<` / `<=` | 小于 / 小于等于 |
-| `is` | `IS NULL` | 为空（`value` 固定为 `null`） |
-| `nis` | `IS NOT NULL` | 不为空 |
-| `like` / `nlike` | `LIKE` / `NOT LIKE` | 模糊匹配（直接使用 SQL `%` 通配符） |
-| `in` / `nin` | `IN (...)` / `NOT IN` | 在/不在列表中（`value` 为数组） |
-| `between` / `bt` | `BETWEEN x AND y` | 范围（`value` 为 `[lo, hi]` 二元数组） |
+| 操作符              | SQL                   | 说明                            |
+|:-----------------|:----------------------|:------------------------------|
+| `eq`             | `=`                   | 等于                            |
+| `ne`             | `!=`                  | 不等于                           |
+| `gt` / `ge`      | `>` / `>=`            | 大于 / 大于等于                     |
+| `lt` / `le`      | `<` / `<=`            | 小于 / 小于等于                     |
+| `is`             | `IS NULL`             | 为空（`value` 固定为 `null`）        |
+| `nis`            | `IS NOT NULL`         | 不为空                           |
+| `like` / `nlike` | `LIKE` / `NOT LIKE`   | 模糊匹配（直接使用 SQL `%` 通配符）        |
+| `in` / `nin`     | `IN (...)` / `NOT IN` | 在/不在列表中（`value` 为数组）          |
+| `between` / `bt` | `BETWEEN x AND y`     | 范围（`value` 为 `[lo, hi]` 二元数组） |
 
 **select 格式：**
 
-| 格式 | 示例 | 生成 SQL | 返回 key |
-|:-----|:-----|:---------|:---------|
-| 字段名 | `"name"` | `"name"` | `name` |
-| 字段:别名 | `"price:unitPrice"` | `"price" AS "unitPrice"` | `unitPrice` |
-| 函数:字段 | `"count:id"` | `COUNT("id") AS "count:id"` | `count:id` |
-| 函数:字段:别名 | `"max:price:maxPrice"` | `MAX("price") AS "maxPrice"` | `maxPrice` |
-| 对象 | `{"field":"id","func":"count","alias":"total"}` | `COUNT("id") AS "total"` | `total` |
-| 对象(无alias) | `{"field":"id","func":"count"}` | `COUNT("id") AS "count:id"` | `count:id` |
+| 格式         | 示例                                              | 生成 SQL                       | 返回 key      |
+|:-----------|:------------------------------------------------|:-----------------------------|:------------|
+| 字段名        | `"name"`                                        | `"name"`                     | `name`      |
+| 字段:别名      | `"price:unitPrice"`                             | `"price" AS "unitPrice"`     | `unitPrice` |
+| 函数:字段      | `"count:id"`                                    | `COUNT("id") AS "count:id"`  | `count:id`  |
+| 函数:字段:别名   | `"max:price:maxPrice"`                          | `MAX("price") AS "maxPrice"` | `maxPrice`  |
+| 对象         | `{"field":"id","func":"count","alias":"total"}` | `COUNT("id") AS "total"`     | `total`     |
+| 对象(无alias) | `{"field":"id","func":"count"}`                 | `COUNT("id") AS "count:id"`  | `count:id`  |
 
-> **聚合函数无 alias 时**，服务端自动以 `"func:field"` 作为 AS 别名，确保返回 key 可预测且与字符串简写 `"func:field"` 一致。支持的聚合函数：`avg`、`max`、`min`、`count`、`sum`。
+> **聚合函数无 alias 时**，服务端自动以 `"func:field"` 作为 AS 别名，确保返回 key 可预测且与字符串简写 `"func:field"` 一致。支持的聚合函数：`avg`、`max`、`min`、
+`count`、`sum`。
 
 **order 格式：**
 
-| 格式 | 示例 | 说明 |
-|:-----|:-----|:-----|
-| 字段名 | `"name"` | 默认 ASC |
-| 前缀 | `"desc.price"` / `"asc.name"` | 指定方向 |
-| 对象 | `{"field":"stock","dir":"desc"}` | 显式格式 |
+| 格式  | 示例                               | 说明     |
+|:----|:---------------------------------|:-------|
+| 字段名 | `"name"`                         | 默认 ASC |
+| 前缀  | `"desc.price"` / `"asc.name"`    | 指定方向   |
+| 对象  | `{"field":"stock","dir":"desc"}` | 显式格式   |
 
 **响应**：与 `GET /api/data/:table` 一致，含 `data` / `pageNo` / `pageSize` / `total`（分页时）。
 
@@ -404,16 +407,16 @@ DELETE /api/data/:table?or=age.gt.50,name.eq.test
 
 **操作符（`.` 分割）：**
 
-| 操作符 | 示例 | SQL |
-|:-------|:-----|:----|
-| `eq` | `?name=eq.test` | `name = 'test'` |
-| `ne` | `?status=ne.0` | `status != 0` |
-| `gt` / `ge` / `lt` / `le` | `?price=gt.100` | `price > 100` |
-| `is` / `nis` | `?tags=is.null` | `tags IS NULL` |
-| `like` / `nlike` | `?name=like.Pro*` | `name LIKE 'Pro%'`（`*` → `%`） |
-| `in` | `?cat=in.(Books,Toys)` | `cat IN ('Books','Toys')` |
-| `nin` | `?cat=nin.(Books,Toys)` | `cat NOT IN (...)` |
-| `in` (between) | `?price=in(100...500)` | `price BETWEEN 100 AND 500` |
+| 操作符                       | 示例                      | SQL                           |
+|:--------------------------|:------------------------|:------------------------------|
+| `eq`                      | `?name=eq.test`         | `name = 'test'`               |
+| `ne`                      | `?status=ne.0`          | `status != 0`                 |
+| `gt` / `ge` / `lt` / `le` | `?price=gt.100`         | `price > 100`                 |
+| `is` / `nis`              | `?tags=is.null`         | `tags IS NULL`                |
+| `like` / `nlike`          | `?name=like.Pro*`       | `name LIKE 'Pro%'`（`*` → `%`） |
+| `in`                      | `?cat=in.(Books,Toys)`  | `cat IN ('Books','Toys')`     |
+| `nin`                     | `?cat=nin.(Books,Toys)` | `cat NOT IN (...)`            |
+| `in` (between)            | `?price=in(100...500)`  | `price BETWEEN 100 AND 500`   |
 
 > **注意**：URL 模式的 LIKE 使用 `*` 通配符（自动转为 SQL `%`），Body 模式直接使用 `%`。
 
@@ -437,15 +440,15 @@ DELETE /api/data/:table?or=age.gt.50,name.eq.test
 
 **特殊参数：**
 
-| 参数 | 示例 | 说明 |
-|:-----|:-----|:-----|
-| `select` | `select=name,age` | 查询字段 |
-| `select` (别名) | `select=price:unitPrice` | 字段重命名 |
-| `select` (聚合) | `select=count:id` | 聚合，返回 key 为 `count:id` |
-| `select` (聚合+别名) | `select=max:price:maxPrice` | 聚合+别名，返回 key 为 `maxPrice` |
-| `order` | `order=asc.age,desc.name` | 排序（省略方向默认 ASC） |
-| `group` | `group=category` | 分组 |
-| `pageNo` + `pageSize` | `pageNo=1&pageSize=20` | 分页，响应含 `total` |
+| 参数                    | 示例                          | 说明                        |
+|:----------------------|:----------------------------|:--------------------------|
+| `select`              | `select=name,age`           | 查询字段                      |
+| `select` (别名)         | `select=price:unitPrice`    | 字段重命名                     |
+| `select` (聚合)         | `select=count:id`           | 聚合，返回 key 为 `count:id`    |
+| `select` (聚合+别名)      | `select=max:price:maxPrice` | 聚合+别名，返回 key 为 `maxPrice` |
+| `order`               | `order=asc.age,desc.name`   | 排序（省略方向默认 ASC）            |
+| `group`               | `group=category`            | 分组                        |
+| `pageNo` + `pageSize` | `pageNo=1&pageSize=20`      | 分页，响应含 `total`            |
 
 支持的聚合函数：`avg`、`max`、`min`、`count`、`sum`。
 
@@ -509,7 +512,7 @@ restbase/
 ├── auth.ts            # 鉴权中间件 + 登录/注册/资料接口
 ├── crud.ts            # CRUD 路由 + Body 查询/删除路由
 ├── query.ts           # URL 参数 → SQL + Body JSON → SQL
-├── logger.ts          # pino 日志（控制台 pino-pretty + 文件 pino-roll）
+├── logger.ts          # pino 日志（控制台纯文本 + 文件 pino-roll）
 ├── client/
 │   └── restbase-client.ts  # TypeScript 前端客户端（零依赖、类型安全）
 ├── documents/

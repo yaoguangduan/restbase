@@ -16,12 +16,12 @@
 
 ## 技术栈
 
-| 组件 | 用途 |
-|:-----|:-----|
-| [Bun](https://bun.sh) | 运行时 + 数据库驱动（`Bun.SQL`） |
-| [Hono](https://hono.dev) | HTTP 框架 + JWT / requestId 中间件 |
-| [Zod](https://zod.dev) | 请求体校验 |
-| [pino](https://getpino.io) | 日志（控制台 pino-pretty + 文件 pino-roll） |
+| 组件                         | 用途                            |
+|:---------------------------|:------------------------------|
+| [Bun](https://bun.sh)      | 运行时 + 数据库驱动（`Bun.SQL`）        |
+| [Hono](https://hono.dev)   | HTTP 框架 + JWT / requestId 中间件 |
+| [Zod](https://zod.dev)     | 请求体校验                         |
+| [pino](https://getpino.io) | 日志（控制台纯文本 + 文件 pino-roll）     |
 
 ---
 
@@ -69,23 +69,23 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:3333/api/data/products
 
 所有配置均有默认值，通过 `.env` 文件或环境变量覆盖：
 
-| 变量 | 说明 | 默认值 |
-|:-----|:-----|:-------|
-| `SVR_PORT` | 服务端口 | `3333` |
-| `SVR_STATIC` | 静态文件目录（相对路径），支持 SPA fallback | 空（不启用） |
-| `SVR_API_LIMIT` | API 限流：每秒每个接口最大请求数（0 = 不限流） | `100` |
-| `DB_URL` | 数据库连接串 | `sqlite://:memory:` |
-| `DB_AUTH_TABLE` | 用户认证表名 | `users` |
-| `DB_AUTH_FIELD` | 数据表 owner 字段名 | `owner` |
-| `DB_AUTH_FIELD_NULL_OPEN` | owner 为 NULL 视为公开数据 | `false` |
-| `DB_INIT_SQL` | 启动时执行的 SQL 文件路径（相对路径） | 空 |
-| `AUTH_JWT_SECRET` | JWT 签名密钥 | `restbase` |
-| `AUTH_JWT_EXP` | JWT 过期秒数 | `43200`（12h） |
-| `AUTH_BASIC_OPEN` | 开启 Basic Auth | `true` |
-| `LOG_LEVEL` | 日志等级 `ERROR` / `INFO` / `DEBUG` | `INFO` |
-| `LOG_CONSOLE` | 控制台输出 | `true` |
-| `LOG_FILE` | 日志文件路径（如 `log/app.log`） | 空 |
-| `LOG_RETAIN_DAYS` | 日志文件保留天数 | `7` |
+| 变量                        | 说明                              | 默认值                 |
+|:--------------------------|:--------------------------------|:--------------------|
+| `SVR_PORT`                | 服务端口                            | `3333`              |
+| `SVR_STATIC`              | 静态文件目录（相对路径），支持 SPA fallback    | 空（不启用）              |
+| `SVR_API_LIMIT`           | API 限流：每秒每个接口最大请求数（0 = 不限流）     | `100`               |
+| `DB_URL`                  | 数据库连接串                          | `sqlite://:memory:` |
+| `DB_AUTH_TABLE`           | 用户认证表名                          | `users`             |
+| `DB_AUTH_FIELD`           | 数据表 owner 字段名                   | `owner`             |
+| `DB_AUTH_FIELD_NULL_OPEN` | owner 为 NULL 视为公开数据             | `false`             |
+| `DB_INIT_SQL`             | 启动时执行的 SQL 文件路径（相对路径）           | 空                   |
+| `AUTH_JWT_SECRET`         | JWT 签名密钥                        | `restbase`          |
+| `AUTH_JWT_EXP`            | JWT 过期秒数                        | `43200`（12h）        |
+| `AUTH_BASIC_OPEN`         | 开启 Basic Auth                   | `true`              |
+| `LOG_LEVEL`               | 日志等级 `ERROR` / `INFO` / `DEBUG` | `INFO`              |
+| `LOG_CONSOLE`             | 控制台输出                           | `true`              |
+| `LOG_FILE`                | 日志文件路径（如 `log/app.log`）         | 空                   |
+| `LOG_RETAIN_DAYS`         | 日志文件保留天数                        | `7`                 |
 
 ---
 
@@ -106,11 +106,11 @@ CREATE TABLE users (
 
 ### 数据表
 
-| 场景 | 条件 | 行为 |
-|:-----|:-----|:-----|
-| 租户隔离 | 表含 `owner` 字段 | 增删改查自动追加 `WHERE owner = 当前用户ID`，创建时自动注入 |
+| 场景        | 条件                                          | 行为                                                   |
+|:----------|:--------------------------------------------|:-----------------------------------------------------|
+| 租户隔离      | 表含 `owner` 字段                               | 增删改查自动追加 `WHERE owner = 当前用户ID`，创建时自动注入              |
 | 公开 + 私有混合 | 表含 `owner` + `DB_AUTH_FIELD_NULL_OPEN=true` | `WHERE (owner = 用户ID OR owner IS NULL)`，NULL 记录所有人可见 |
-| 全局可见 | 表无 `owner` 字段 | 所有认证用户可访问全部数据 |
+| 全局可见      | 表无 `owner` 字段                               | 所有认证用户可访问全部数据                                        |
 
 ```sql
 -- 租户隔离表
@@ -195,18 +195,18 @@ LOG_LEVEL=ERROR
 }
 ```
 
-| code | 说明 |
-|:-----|:-----|
-| `OK` | 成功 |
-| `AUTH_ERROR` | 鉴权失败（未登录/密码错误/Token过期/用户已存在） |
-| `VALIDATION_ERROR` | Zod 请求体校验失败 |
-| `NOT_FOUND` | 表不存在 |
-| `CONFLICT` | 记录已存在（主键冲突） |
-| `TABLE_ERROR` | 表无主键（不支持按ID操作） |
-| `FORBIDDEN` | 禁止操作用户表（需使用 /api/auth/*） |
-| `QUERY_ERROR` | 查询语法错误 |
-| `RATE_LIMITED` | API 请求频率超限 |
-| `SYS_ERROR` | 系统异常 |
+| code               | 说明                           |
+|:-------------------|:-----------------------------|
+| `OK`               | 成功                           |
+| `AUTH_ERROR`       | 鉴权失败（未登录/密码错误/Token过期/用户已存在） |
+| `VALIDATION_ERROR` | Zod 请求体校验失败                  |
+| `NOT_FOUND`        | 表不存在                         |
+| `CONFLICT`         | 记录已存在（主键冲突）                  |
+| `TABLE_ERROR`      | 表无主键（不支持按ID操作）               |
+| `FORBIDDEN`        | 禁止操作用户表（需使用 /api/auth/*）     |
+| `QUERY_ERROR`      | 查询语法错误                       |
+| `RATE_LIMITED`     | API 请求频率超限                   |
+| `SYS_ERROR`        | 系统异常                         |
 
 ---
 
@@ -354,48 +354,48 @@ curl -X POST http://localhost:3333/api/query/products \
 
 支持以下所有写法，`cond` 内递归支持嵌套：
 
-| 写法 | 示例 | 说明 |
-|:-----|:-----|:-----|
-| 二元组 | `["name", "test"]` | 默认 `eq` |
-| 三元组 | `["price", "gt", 100]` | 指定操作符 |
-| 对象 | `{"field":"stock","op":"ge","value":50}` | 显式格式 |
-| 逻辑组 | `{"op":"or","cond":[...]}` | `and`/`or` 嵌套组合 |
-| 单条件 | `"where": ["id","eq",1]` | where 本身为元组 |
+| 写法  | 示例                                       | 说明              |
+|:----|:-----------------------------------------|:----------------|
+| 二元组 | `["name", "test"]`                       | 默认 `eq`         |
+| 三元组 | `["price", "gt", 100]`                   | 指定操作符           |
+| 对象  | `{"field":"stock","op":"ge","value":50}` | 显式格式            |
+| 逻辑组 | `{"op":"or","cond":[...]}`               | `and`/`or` 嵌套组合 |
+| 单条件 | `"where": ["id","eq",1]`                 | where 本身为元组     |
 
 ##### 操作符
 
-| 操作符 | SQL | 值格式 |
-|:-------|:----|:-------|
-| `eq` | `=` | 标量 |
-| `ne` | `!=` | 标量 |
-| `gt` / `ge` | `>` / `>=` | 标量 |
-| `lt` / `le` | `<` / `<=` | 标量 |
-| `is` | `IS NULL` | `null` |
-| `nis` | `IS NOT NULL` | `null` |
-| `like` / `nlike` | `LIKE` / `NOT LIKE` | 字符串（直接用 `%`） |
-| `in` / `nin` | `IN` / `NOT IN` | 数组 `[1, 2, 3]` |
-| `between` / `bt` | `BETWEEN x AND y` | 二元数组 `[lo, hi]` |
+| 操作符              | SQL                 | 值格式             |
+|:-----------------|:--------------------|:----------------|
+| `eq`             | `=`                 | 标量              |
+| `ne`             | `!=`                | 标量              |
+| `gt` / `ge`      | `>` / `>=`          | 标量              |
+| `lt` / `le`      | `<` / `<=`          | 标量              |
+| `is`             | `IS NULL`           | `null`          |
+| `nis`            | `IS NOT NULL`       | `null`          |
+| `like` / `nlike` | `LIKE` / `NOT LIKE` | 字符串（直接用 `%`）    |
+| `in` / `nin`     | `IN` / `NOT IN`     | 数组 `[1, 2, 3]`  |
+| `between` / `bt` | `BETWEEN x AND y`   | 二元数组 `[lo, hi]` |
 
 ##### select 格式
 
-| 格式 | 示例 | 生成 SQL | 返回 key |
-|:-----|:-----|:---------|:---------|
-| 字段名 | `"name"` | `"name"` | `name` |
-| 字段:别名 | `"price:unitPrice"` | `"price" AS "unitPrice"` | `unitPrice` |
-| 函数:字段 | `"count:id"` | `COUNT("id") AS "count:id"` | `count:id` |
-| 函数:字段:别名 | `"max:price:maxPrice"` | `MAX("price") AS "maxPrice"` | `maxPrice` |
-| 对象(有alias) | `{"field":"id","func":"count","alias":"total"}` | `COUNT("id") AS "total"` | `total` |
-| 对象(无alias) | `{"field":"id","func":"count"}` | `COUNT("id") AS "count:id"` | `count:id` |
+| 格式         | 示例                                              | 生成 SQL                       | 返回 key      |
+|:-----------|:------------------------------------------------|:-----------------------------|:------------|
+| 字段名        | `"name"`                                        | `"name"`                     | `name`      |
+| 字段:别名      | `"price:unitPrice"`                             | `"price" AS "unitPrice"`     | `unitPrice` |
+| 函数:字段      | `"count:id"`                                    | `COUNT("id") AS "count:id"`  | `count:id`  |
+| 函数:字段:别名   | `"max:price:maxPrice"`                          | `MAX("price") AS "maxPrice"` | `maxPrice`  |
+| 对象(有alias) | `{"field":"id","func":"count","alias":"total"}` | `COUNT("id") AS "total"`     | `total`     |
+| 对象(无alias) | `{"field":"id","func":"count"}`                 | `COUNT("id") AS "count:id"`  | `count:id`  |
 
 > **聚合无 alias 时**自动以 `"func:field"` 作为 AS 别名，保证返回 key 可预测。支持函数：`avg` / `max` / `min` / `count` / `sum`。
 
 ##### order 格式
 
-| 格式 | 示例 |
-|:-----|:-----|
-| 字段名 | `"name"` → ASC |
-| 前缀 | `"desc.price"` / `"asc.name"` |
-| 对象 | `{"field":"stock","dir":"desc"}` |
+| 格式  | 示例                               |
+|:----|:---------------------------------|
+| 字段名 | `"name"` → ASC                   |
+| 前缀  | `"desc.price"` / `"asc.name"`    |
+| 对象  | `{"field":"stock","dir":"desc"}` |
 
 ##### 分页
 
@@ -652,19 +652,19 @@ restbase/
 
 ### 日志配置
 
-| 变量 | 说明 | 默认 |
-|:-----|:-----|:-----|
-| `LOG_LEVEL` | `ERROR` / `INFO` / `DEBUG` | `INFO` |
-| `LOG_CONSOLE` | 控制台输出（pino-pretty 彩色） | `true` |
-| `LOG_FILE` | 文件路径（NDJSON 格式） | 空 |
-| `LOG_RETAIN_DAYS` | 文件保留天数 | `7` |
+| 变量                | 说明                         | 默认     |
+|:------------------|:---------------------------|:-------|
+| `LOG_LEVEL`       | `ERROR` / `INFO` / `DEBUG` | `INFO` |
+| `LOG_CONSOLE`     | 控制台输出（纯文本）                 | `true` |
+| `LOG_FILE`        | 文件路径（NDJSON 格式）            | 空      |
+| `LOG_RETAIN_DAYS` | 文件保留天数                     | `7`    |
 
 ### 日志级别
 
-| 级别 | 输出内容 |
-|:-----|:---------|
-| `ERROR` | 仅错误日志 |
-| `INFO` | 每个请求：requestId、method、path、耗时(ms) |
+| 级别      | 输出内容                                |
+|:--------|:------------------------------------|
+| `ERROR` | 仅错误日志                               |
+| `INFO`  | 每个请求：requestId、method、path、耗时(ms)   |
 | `DEBUG` | INFO + 完整 headers、请求体、响应体、SQL 语句及参数 |
 
 ### 文件滚动策略

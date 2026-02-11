@@ -15,10 +15,39 @@
 
 ## 快速开始
 
+### 方式一：全局安装（推荐）
+
+```bash
+bun install -g @dtdyq/restbase
+```
+
+安装后直接在任意目录使用 `restbase` 命令：
+
+```bash
+# 默认 SQLite 内存模式启动
+restbase
+
+# 指定数据库和端口
+DB_URL=sqlite://./data.db SVR_PORT=8080 restbase
+
+# 连接 MySQL
+DB_URL=mysql://user:pass@localhost/mydb restbase
+```
+
+更新到最新版：
+
+```bash
+bun install -g @dtdyq/restbase@latest
+```
+
+### 方式二：从源码运行
+
 ```bash
 bun install
 bun run server.ts
 ```
+
+### 验证
 
 ```bash
 # 健康检查
@@ -27,6 +56,24 @@ curl http://localhost:3333/api/health
 # Basic Auth 查询
 curl -u admin:admin http://localhost:3333/api/data/products
 ```
+
+### 前端客户端
+
+独立 npm 包，零依赖：
+
+```bash
+bun add @dtdyq/restbase-client
+```
+
+```ts
+import RestBase, { gt } from "@dtdyq/restbase-client";
+
+const rb = new RestBase();  // 同源部署不传参
+await rb.auth.login("admin", "admin");
+const data = await rb.table("products").query().where(gt("price", 100)).data();
+```
+
+详见 [client/README.md](client/README.md)。
 
 ## 构建与部署
 
@@ -73,7 +120,7 @@ bun test rest.test.ts    # 137+ 用例
 | 文档                                               | 内容                                                |
 |:-------------------------------------------------|:--------------------------------------------------|
 | [documents/server.md](documents/server.md)       | 服务端详细文档 — 配置、全部 API 接口说明与示例、日志、部署                 |
-| [documents/client.md](documents/client.md)       | 前端客户端文档 — 安装、API 速查、QueryBuilder 链式调用、类型安全 SELECT |
+| [client/README.md](client/README.md)             | 前端客户端文档 — 安装、API 速查、QueryBuilder 链式调用、类型安全 SELECT |
 | [documents/db_design.md](documents/db_design.md) | 数据库设计指南 — 表结构规范、约束、索引、设计模式与检查清单                   |
 | [documents/design.md](documents/design.md)       | 需求与设计文档 — 架构设计、技术规格、完整接口定义                        |
 
@@ -81,19 +128,23 @@ bun test rest.test.ts    # 137+ 用例
 
 ```
 restbase/
-├── server.ts            # 入口
-├── types.ts             # 配置 + 类型
+├── bin/
+│   └── restbase.ts      # 全局命令入口（bun install -g）
+├── server.ts            # 服务入口
+├── types.ts             # 配置 + 类型 + Zod Schema
 ├── db.ts                # 数据库
 ├── auth.ts              # 鉴权
 ├── crud.ts              # CRUD 路由
 ├── query.ts             # SQL 生成
 ├── logger.ts            # 日志
 ├── client/
-│   └── restbase-client.ts   # 前端客户端
+│   ├── restbase-client.ts   # 前端客户端（独立 npm 包 @dtdyq/restbase-client）
+│   ├── README.md            # 客户端文档
+│   └── package.json
 ├── documents/
 │   ├── design.md        # 需求设计文档
 │   ├── server.md        # 服务端文档
-│   └── client.md        # 客户端文档
+│   └── db_design.md     # 数据库设计指南
 ├── init.sql             # 初始化 SQL
 ├── rest.test.ts         # 集成测试
 ├── .env / .env.test     # 环境配置

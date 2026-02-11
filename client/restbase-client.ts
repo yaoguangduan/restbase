@@ -530,7 +530,7 @@ export class RestBase {
     readonly auth: AuthClient;
     private _http: HttpClient;
 
-    constructor(endpoint: string) {
+    constructor(endpoint: string = "") {
         this._http = new HttpClient(endpoint);
         this.auth = new AuthClient(this._http);
     }

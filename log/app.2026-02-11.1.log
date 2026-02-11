@@ -14,7 +14,8 @@
 {"level":"INFO","time":"2026-02-11T05:19:14.121Z","pid":9450,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
 {"level":"INFO","time":"2026-02-11T05:19:14.121Z","pid":9450,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
 {"level":"INFO","time":"2026-02-11T05:19:14.123Z","pid":9450,"hostname":"U-J66C7LT0-2201.local","port":3333,"msg":"Server started http://localhost:3333"}
-{"level":"WARN","time":"2026-02-11T06:32:16.472Z","pid":493307,"hostname":"iZbp18rrcw8f7s0q7a06sxZ","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
-{"level":"INFO","time":"2026-02-11T06:32:16.479Z","pid":493307,"hostname":"iZbp18rrcw8f7s0q7a06sxZ","tables":["users"],"msg":"DB loaded 1 table(s)"}
-{"level":"INFO","time":"2026-02-11T06:32:16.481Z","pid":493307,"hostname":"iZbp18rrcw8f7s0q7a06sxZ","limit":100,"msg":"API rate limit: 100 req/s per API"}
-{"level":"INFO","time":"2026-02-11T06:32:16.487Z","pid":493307,"hostname":"iZbp18rrcw8f7s0q7a06sxZ","port":3333,"msg":"Server started http://localhost:3333"}
+{"level":"WARN","time":"2026-02-11T06:39:02.914Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T06:39:02.915Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T06:39:02.915Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T06:39:02.917Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","port":19999,"msg":"Server started http://localhost:19999"}
+{"level":"INFO","time":"2026-02-11T06:39:03.306Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","requestId":"c35c9928-f7e6-4d2a-acf5-332728654cd1","method":"GET","path":"/api/auth/login","ms":1,"msg":"→ response"}

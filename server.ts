@@ -26,6 +26,7 @@ import {log} from "./logger.ts";
 import {getTableMetaByName, getTablesMeta, initDb, syncTablesMeta} from "./db.ts";
 import {authMiddleware, registerAuthRoutes} from "./auth.ts";
 import {registerCrudRoutes} from "./crud.ts";
+import pkg from "./package.json";
 
 /* ═══════════ 1. 安全检查 ═══════════ */
 
@@ -198,4 +199,4 @@ if (cfg.staticDir) {
 /* ═══════════ 13. 启动服务 ═══════════ */
 
 export const server = Bun.serve({port: cfg.port, fetch: app.fetch});
-log.info({port: cfg.port}, `Server started http://localhost:${cfg.port}`);
+log.info({version: pkg.version, port: cfg.port}, `RestBase v${pkg.version} started http://localhost:${cfg.port}`);

@@ -1,0 +1,23 @@
+{
+    "name": "@dtdyq/restbase-client",
+    "version": "1.0.1",
+    "description": "Type-safe, zero-dependency client for RestBase API — works in Browser / Node / Bun / Deno",
+    "keywords": ["restbase", "rest", "api", "client", "typescript", "query-builder"],
+    "license": "MIT",
+    "type": "module",
+    "main": "./restbase-client.ts",
+    "module": "./restbase-client.ts",
+    "types": "./restbase-client.ts",
+    "exports": {
+        ".": {
+            "types": "./restbase-client.ts",
+            "bun": "./restbase-client.ts",
+            "import": "./restbase-client.ts",
+            "default": "./restbase-client.ts"
+        }
+    },
+    "files": [
+        "restbase-client.ts",
+        "README.md"
+    ]
+}

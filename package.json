@@ -1,8 +1,25 @@
 {
-    "name": "restbase",
-    "version": "1.0.0",
+    "name": "@dtdyq/restbase",
+    "version": "1.0.1",
     "description": "Zero-code REST API server for SQLite / MySQL with built-in auth, tenant isolation, and TypeScript client",
-    "private": true,
+    "keywords": ["rest", "api", "crud", "sqlite", "mysql", "hono", "bun", "zero-code"],
+    "license": "MIT",
+    "bin": {
+        "restbase": "./bin/restbase.ts"
+    },
+    "files": [
+        "bin/",
+        "server.ts",
+        "types.ts",
+        "db.ts",
+        "auth.ts",
+        "crud.ts",
+        "meta.ts",
+        "query.ts",
+        "logger.ts",
+        "client/",
+        "README.md"
+    ],
     "engines": {
         "bun": ">=1.2.0"
     },

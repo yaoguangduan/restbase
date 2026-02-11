@@ -43,7 +43,9 @@ export async function run(sql: string, values?: unknown[]): Promise<any[]> {
     const requestId = reqStore.getStore()?.requestId;
     log.debug({ requestId, sql, params: values }, "SQL");
   }
-  return (await db.unsafe(sql, values)) as any[];
+  /* MySQL 的 unsafe() 不支持 $1/$2 占位符，需转换为 ? */
+  const finalSql = cfg.isSqlite ? sql : sql.replace(/\$\d+/g, "?");
+  return (await db.unsafe(finalSql, values)) as any[];
 }
 
 /* ═══════════ 初始化入口 ═══════════ */

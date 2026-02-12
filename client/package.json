@@ -1,6 +1,6 @@
 {
     "name": "@dtdyq/restbase-client",
-    "version": "1.0.1",
+    "version": "2.1.1",
     "description": "Type-safe, zero-dependency client for RestBase API — works in Browser / Node / Bun / Deno",
     "keywords": ["restbase", "rest", "api", "client", "typescript", "query-builder"],
     "license": "MIT",

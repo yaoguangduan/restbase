@@ -7,9 +7,13 @@
  *   - 日志保留天数（LOG_RETAIN_DAYS，默认 7）
  *   - 日志等级（LOG_LEVEL）
  *
+ * pino-roll 启用 symlink，当前日志始终通过 current.log 软链接访问。
+ *
  * 导出 log 实例，全局使用 log.info / log.debug / log.error / log.fatal
  */
 import pino from "pino";
+import {dirname, join} from "path";
+import {rmSync} from "fs";
 import {cfg} from "./types.ts";
 
 /* ═══════════ pino level 映射 ═══════════ */
@@ -57,8 +61,13 @@ if (cfg.logConsole) {
     });
 }
 
-/* 文件（pino-roll 滚动写入 NDJSON） */
+/* 文件（pino-roll 滚动写入 NDJSON，symlink 指向当前文件） */
 if (cfg.logFile) {
+    /* pino-roll 的 symlink 选项在 current.log 已存在时会抛 EEXIST，
+       启动前无条件清理残留文件（可能是符号链接或普通文件）避免崩溃 */
+    const symlinkPath = join(dirname(cfg.logFile), "current.log");
+    try { rmSync(symlinkPath, {force: true}); } catch { /* ignore */ }
+
     const {default: buildRollStream} = await import("pino-roll");
     const rollStream = await buildRollStream({
         file: cfg.logFile,
@@ -67,6 +76,7 @@ if (cfg.logFile) {
         dateFormat: "yyyy-MM-dd",
         limit: {count: cfg.logRetainDays},
         mkdir: true,
+        symlink: true,
     });
 
     streams.push({

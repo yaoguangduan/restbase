@@ -451,14 +451,20 @@ export class AuthClient {
    ══════════════════════════════════════════════════════════════ */
 
 class HttpClient {
-    private _baseUrl: string;
+    private _urls: string[];
     private _token: string | null = null;
     private _basicAuth: string | null = null;
     private _requestId?: string;
     private _headers: Record<string, string> = {};
 
-    constructor(baseUrl: string) {
-        this._baseUrl = baseUrl.replace(/\/+$/, "");
+    constructor(urls: string | string[]) {
+        const list = Array.isArray(urls) ? urls : [urls];
+        this._urls = list.map((u) => u.replace(/\/+$/, ""));
+    }
+
+    /** Pick a random base URL (load balancing) */
+    private _pickUrl(): string {
+        return this._urls[Math.floor(Math.random() * this._urls.length)]!;
     }
 
     setToken(token: string | null): void {
@@ -471,7 +477,11 @@ class HttpClient {
     }
 
     setBasicAuth(username: string, password: string): void {
-        this._basicAuth = btoa(`${username}:${password}`);
+        /* Unicode-safe base64: TextEncoder 处理非 ASCII 字符 */
+        const bytes = new TextEncoder().encode(`${username}:${password}`);
+        let binary = "";
+        for (const b of bytes) binary += String.fromCharCode(b);
+        this._basicAuth = btoa(binary);
         this._token = null;
     }
 
@@ -511,7 +521,7 @@ class HttpClient {
     }
 
     private async _fetch<T>(method: string, path: string, params?: Record<string, string>, body?: unknown): Promise<ApiResponse<T>> {
-        let url = `${this._baseUrl}${path}`;
+        let url = `${this._pickUrl()}${path}`;
         if (params && Object.keys(params).length > 0) {
             url += `?${new URLSearchParams(params).toString()}`;
         }
@@ -526,12 +536,35 @@ class HttpClient {
    RestBase — 主入口
    ══════════════════════════════════════════════════════════════ */
 
+/**
+ * RestBase — 前端客户端主入口
+ *
+ * 支持三种构造方式：
+ *
+ * ```ts
+ * // 1. 同源部署（无参数）
+ * const rb = new RestBase();
+ *
+ * // 2. 单个 endpoint
+ * const rb = new RestBase("http://localhost:3333");
+ *
+ * // 3. 多个 endpoint（负载均衡，每次请求随机选一个）
+ * const rb = new RestBase([
+ *   "http://localhost:3333",
+ *   "http://localhost:8080",
+ *   "http://localhost:9090",
+ * ]);
+ * ```
+ *
+ * 多 endpoint 模式下，所有服务端实例应连接同一个数据库。
+ * 客户端共享同一套 auth 状态，每次请求随机分发到不同节点。
+ */
 export class RestBase {
     readonly auth: AuthClient;
     private _http: HttpClient;
 
-    constructor(endpoint: string = "") {
-        this._http = new HttpClient(endpoint);
+    constructor(endpoint?: string | string[]) {
+        this._http = new HttpClient(endpoint ?? "");
         this.auth = new AuthClient(this._http);
     }
 
@@ -541,8 +574,8 @@ export class RestBase {
     }
 
     /** 健康检查 */
-    async health(): Promise<ApiResponse<{ status: string }>> {
-        return this._http.get<{ status: string }>("/api/health");
+    async health(): Promise<ApiResponse> {
+        return this._http.get("/api/health");
     }
 
     /** 获取所有表元数据（不含 users 表） */
@@ -560,13 +593,13 @@ export class RestBase {
         return this._http.get<TableMeta[]>("/api/meta/sync");
     }
 
-    /** 设置自定义请求头 */
+    /** 设置自定义请求头（当前 endpoint） */
     setHeader(key: string, value: string): this {
         this._http.setHeader(key, value);
         return this;
     }
 
-    /** 设置请求追踪 ID */
+    /** 设置请求追踪 ID（当前 endpoint） */
     setRequestId(id: string): this {
         this._http.setRequestId(id);
         return this;

@@ -41,7 +41,7 @@ import RestBase, {
     notIn,
     or,
     sel,
-} from "./client/restbase-client.ts";
+} from "../client/restbase-client.ts";
 
 const BASE = `http://localhost:${cfg.port}`;
 

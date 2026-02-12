@@ -19,3 +19,90 @@
 {"level":"INFO","time":"2026-02-11T06:39:02.915Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
 {"level":"INFO","time":"2026-02-11T06:39:02.917Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","port":19999,"msg":"Server started http://localhost:19999"}
 {"level":"INFO","time":"2026-02-11T06:39:03.306Z","pid":72340,"hostname":"U-J66C7LT0-2201.local","requestId":"c35c9928-f7e6-4d2a-acf5-332728654cd1","method":"GET","path":"/api/auth/login","ms":1,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T09:39:32.349Z","pid":81560,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T09:39:32.351Z","pid":81560,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T09:39:32.351Z","pid":81560,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T09:39:32.353Z","pid":81560,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":13333,"msg":"RestBase v1.0.1 started http://localhost:13333"}
+{"level":"INFO","time":"2026-02-11T09:39:34.269Z","pid":81560,"hostname":"U-J66C7LT0-2201.local","requestId":"4f7e80ae-545f-4738-9dfd-a3f3ecce663e","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T09:39:56.814Z","pid":82424,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T09:39:56.816Z","pid":82424,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T09:39:56.816Z","pid":82424,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T09:39:56.817Z","pid":82424,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":14444,"msg":"RestBase v1.0.1 started http://localhost:14444"}
+{"level":"INFO","time":"2026-02-11T09:40:05.541Z","pid":82424,"hostname":"U-J66C7LT0-2201.local","requestId":"84a6e92b-f65e-4e86-82ca-3faa7ba90bec","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T09:40:12.882Z","pid":83000,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T09:40:12.884Z","pid":83000,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T09:40:12.884Z","pid":83000,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T09:40:12.885Z","pid":83000,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":15555,"msg":"RestBase v1.0.1 started http://localhost:15555"}
+{"level":"WARN","time":"2026-02-11T09:43:37.619Z","pid":90429,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T09:43:37.621Z","pid":90429,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T09:43:37.621Z","pid":90429,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T09:43:37.623Z","pid":90429,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":16666,"msg":"RestBase v1.0.1 started http://localhost:16666"}
+{"level":"INFO","time":"2026-02-11T09:43:44.217Z","pid":90429,"hostname":"U-J66C7LT0-2201.local","requestId":"f9ff385d-2390-4f57-b887-da0efeec4188","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:04:09.385Z","pid":33357,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:04:09.386Z","pid":33357,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:04:09.386Z","pid":33357,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:04:09.387Z","pid":33357,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":17777,"msg":"RestBase v1.0.1 started http://localhost:17777"}
+{"level":"WARN","time":"2026-02-11T10:04:15.880Z","pid":33600,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:04:15.881Z","pid":33600,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:04:15.881Z","pid":33600,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:04:15.883Z","pid":33600,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":18888,"msg":"RestBase v1.0.1 started http://localhost:18888"}
+{"level":"INFO","time":"2026-02-11T10:04:24.935Z","pid":33600,"hostname":"U-J66C7LT0-2201.local","requestId":"79cc7efe-14a0-4e4e-93e3-b427a743b487","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:04:24.941Z","pid":33357,"hostname":"U-J66C7LT0-2201.local","requestId":"9bfadca4-44f5-471f-af9b-e49dfb19780f","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:08:42.872Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:08:42.873Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:08:42.874Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:08:42.875Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":17777,"msg":"RestBase v1.0.1 started http://localhost:17777"}
+{"level":"WARN","time":"2026-02-11T10:08:42.872Z","pid":43058,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:08:42.873Z","pid":43058,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:08:42.874Z","pid":43058,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:08:42.875Z","pid":43058,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":18888,"msg":"RestBase v1.0.1 started http://localhost:18888"}
+{"level":"INFO","time":"2026-02-11T10:08:51.669Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","requestId":"d62398a8-d81f-473f-80b9-812e9c8848e3","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:08:51.673Z","pid":43058,"hostname":"U-J66C7LT0-2201.local","requestId":"a6670d35-f270-4b72-afe3-194ec449e8f3","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:08:58.472Z","pid":43056,"hostname":"U-J66C7LT0-2201.local","requestId":"31c89064-ff93-41e1-a9b9-fe6a64d3d95a","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:11:17.569Z","pid":48433,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:11:17.570Z","pid":48433,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:11:17.571Z","pid":48433,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:11:17.572Z","pid":48433,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":18888,"msg":"RestBase v1.0.1 started http://localhost:18888"}
+{"level":"WARN","time":"2026-02-11T10:11:17.569Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:11:17.570Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:11:17.571Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:11:17.572Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":17777,"msg":"RestBase v1.0.1 started http://localhost:17777"}
+{"level":"INFO","time":"2026-02-11T10:11:26.544Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","requestId":"ff961210-a02a-46ea-84f2-cfa3f47f0957","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:11:33.761Z","pid":48431,"hostname":"U-J66C7LT0-2201.local","requestId":"faf09cca-11bb-49b1-bdb6-8a5a762877e4","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:11:33.765Z","pid":48433,"hostname":"U-J66C7LT0-2201.local","requestId":"5f0cbf87-9511-43be-a4ee-8b07411d96d4","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:12:28.775Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:12:28.776Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:12:28.776Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:12:28.778Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":3333,"msg":"RestBase v1.0.1 started http://localhost:3333"}
+{"level":"INFO","time":"2026-02-11T10:12:35.746Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"0a2045b5-6f35-4989-8415-7d5cec28cd47","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:13:01.610Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:13:01.612Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:13:01.612Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:13:01.613Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":1323,"msg":"RestBase v1.0.1 started http://localhost:1323"}
+{"level":"INFO","time":"2026-02-11T10:13:06.137Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"d871ae57-5453-425f-90e4-641b6d34aac0","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:06.138Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"fef8faeb-6b4e-4d69-93b4-b30f507be2f0","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:09.783Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"2f1e0d66-df95-4af2-9a1b-b8de808818c2","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:09.784Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"fc33045a-8ee3-45c3-acb4-6308cb39a36a","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:10.585Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"d0086ec1-b788-44e7-adf1-b6b0b1e22846","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:10.586Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"92ca5c02-390b-4e99-b95f-ca7426caa998","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:33.688Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"30a37596-0b47-4594-a29e-735fbf02916a","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:13:33.689Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"f7bbf228-e8ea-4bd7-ad75-9438e4469f86","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:14:32.222Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:14:32.224Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:14:32.224Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:14:32.225Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":17777,"msg":"RestBase v1.0.1 started http://localhost:17777"}
+{"level":"INFO","time":"2026-02-11T10:14:34.140Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","requestId":"29113ce4-d214-4e5d-8cd1-b49d8d4ed535","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:14:34.144Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"7b64a34f-c838-45f8-adcb-7b7fc372b4c5","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:14:34.147Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"4878b104-858c-46d5-9423-c5c6339bc745","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:14:35.262Z","pid":55400,"hostname":"U-J66C7LT0-2201.local","requestId":"f06b6bfb-7fbc-430c-ad96-eac47445cf00","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:14:35.263Z","pid":52337,"hostname":"U-J66C7LT0-2201.local","requestId":"673fdbf6-da99-4c51-a21c-829e81e9917f","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:14:35.264Z","pid":51222,"hostname":"U-J66C7LT0-2201.local","requestId":"9ade9da5-53f1-4ac6-9d48-c279f05fa1e3","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"WARN","time":"2026-02-11T10:15:30.661Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","msg":"AUTH_JWT_SECRET is using default value! Set a strong secret in production."}
+{"level":"INFO","time":"2026-02-11T10:15:30.662Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","tables":["users"],"msg":"DB loaded 1 table(s)"}
+{"level":"INFO","time":"2026-02-11T10:15:30.662Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","limit":100,"msg":"API rate limit: 100 req/s per API"}
+{"level":"INFO","time":"2026-02-11T10:15:30.663Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","version":"1.0.1","port":1323,"msg":"RestBase v1.0.1 started http://localhost:1323"}
+{"level":"INFO","time":"2026-02-11T10:15:32.527Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","requestId":"d9213a42-8250-48f6-8fa7-cf0d5d7ebc7f","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:15:34.556Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","requestId":"b9aa4445-6df6-405b-bad2-321090575df1","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:16:13.032Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","requestId":"aa3bc6dc-8a13-47c2-a65e-385588806406","method":"GET","path":"/api/health","ms":1,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:16:31.692Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","requestId":"37fdd066-52fc-4c93-a64c-155faede5898","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}
+{"level":"INFO","time":"2026-02-11T10:16:45.317Z","pid":57634,"hostname":"U-J66C7LT0-2201.local","requestId":"a615cb02-71b3-4fbd-97cc-da8185cce453","method":"GET","path":"/api/health","ms":0,"msg":"→ response"}

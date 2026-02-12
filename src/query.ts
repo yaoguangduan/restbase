@@ -238,10 +238,13 @@ function buildIn(
 
     /* BETWEEN: 12...20 */
     if (inner.includes("...")) {
-        const [lo, hi] = inner.split("...");
+        const parts = inner.split("...");
+        const lo = parts[0];
+        const hi = parts[parts.length - 1];
+        if (!lo || !hi) throw new AppError("QUERY_ERROR", "BETWEEN requires two values: lo...hi");
         return {
             sql: `${f} ${not}BETWEEN $${ctx.n++} AND $${ctx.n++}`,
-            values: [typed(lo!, col), typed(hi!, col)],
+            values: [typed(lo, col), typed(hi, col)],
         };
     }
 

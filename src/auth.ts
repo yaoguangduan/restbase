@@ -51,7 +51,7 @@ export const authMiddleware = async (
                 const password = decoded.slice(sep + 1);
                 const user = await findUser(username);
                 if (user && user.password === password) {
-                    c.set("userId", user.id as number);
+                    c.set("userId", user.id);
                     c.set("username", username);
                     return next();
                 }
@@ -66,14 +66,20 @@ export const authMiddleware = async (
 
 /* ═══════════ 内部工具 ═══════════ */
 
-async function findUser(username: string) {
+interface AuthUser {
+    id: number;
+    username: string;
+    password: string;
+}
+
+async function findUser(username: string): Promise<AuthUser | null> {
     const rows = await run(
         `SELECT id, username, password
          FROM ${q(cfg.authTable)}
          WHERE username = $1`,
         [username],
     );
-    return rows.length > 0 ? (rows[0] as any) : null;
+    return rows.length > 0 ? (rows[0] as AuthUser) : null;
 }
 
 async function issueToken(uid: number, username: string): Promise<string> {
@@ -114,6 +120,7 @@ export function registerAuthRoutes(app: Hono<AppEnv>) {
                 [username, password],
             );
             const user = await findUser(username);
+            if (!user) throw new AppError("AUTH_ERROR", "Registration failed");
             return c.json(ok(await issueToken(user.id, username)));
         },
     );
@@ -128,9 +135,7 @@ export function registerAuthRoutes(app: Hono<AppEnv>) {
             [userId],
         );
         if (rows.length === 0) throw new AppError("AUTH_ERROR", "User not found");
-        const data = {...(rows[0] as any)};
-        delete data.id;
-        delete data.password;
+        const {id: _, password: _pw, ...data} = rows[0] as Record<string, unknown>;
         return c.json(ok(data));
     });
 

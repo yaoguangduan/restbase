@@ -11,12 +11,16 @@ import {AsyncLocalStorage} from "node:async_hooks";
 const _db = Bun.env.DB_URL ?? "sqlite://:memory:";
 
 export const cfg = {
+    /** 实例名称（用于 status 展示） */
+    name: Bun.env.SVR_NAME ?? "",
     /** 服务端口 */
     port: Number(Bun.env.SVR_PORT) || 3333,
     /** 静态文件目录（相对路径，为空则不托管） */
     staticDir: Bun.env.SVR_STATIC ?? "",
     /** API 限流：每秒每个 API 接口允许的最大请求数（0 = 不限流） */
-    apiLimit: Number(Bun.env.SVR_API_LIMIT) || 100,
+    apiLimit: Bun.env.SVR_API_LIMIT !== undefined ? Number(Bun.env.SVR_API_LIMIT) : 100,
+    /** CORS 允许的来源（默认 *，生产环境建议改为具体域名，逗号分隔多个） */
+    corsOrigin: Bun.env.SVR_CORS_ORIGIN ?? "*",
     /** 数据库连接字符串 */
     db: _db,
     /** 是否 SQLite（非 mysql:// 则视为 SQLite） */

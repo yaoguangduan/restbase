@@ -1,22 +1,15 @@
 {
     "name": "@dtdyq/restbase",
-    "version": "1.0.1",
-    "description": "Zero-code REST API server for SQLite / MySQL with built-in auth, tenant isolation, and TypeScript client",
-    "keywords": ["rest", "api", "crud", "sqlite", "mysql", "hono", "bun", "zero-code"],
+    "version": "2.1.2",
+    "description": "Zero-code REST API server for SQLite / MySQL — CLI with daemon mode, health monitoring, built-in auth & tenant isolation",
+    "keywords": ["rest", "api", "crud", "sqlite", "mysql", "hono", "bun", "zero-code", "cli", "daemon"],
     "license": "MIT",
     "bin": {
         "restbase": "./bin/restbase.ts"
     },
     "files": [
         "bin/",
-        "server.ts",
-        "types.ts",
-        "db.ts",
-        "auth.ts",
-        "crud.ts",
-        "meta.ts",
-        "query.ts",
-        "logger.ts",
+        "src/",
         "client/",
         "README.md"
     ],
@@ -24,17 +17,13 @@
         "bun": ">=1.2.0"
     },
     "scripts": {
-        "dev": "bun run --watch server.ts",
-        "start": "bun run server.ts",
-        "test": "bun test rest.test.ts",
-        "build": "bun build --compile --minify --sourcemap ./server.ts --outfile restbase",
-        "build:linux": "bun build --compile --minify --target=bun-linux-x64 ./server.ts --outfile restbase-linux-x64",
-        "build:linux-arm": "bun build --compile --minify --target=bun-linux-arm64 ./server.ts --outfile restbase-linux-arm64",
-        "build:mac": "bun build --compile --minify --target=bun-darwin-x64 ./server.ts --outfile restbase-darwin-x64",
-        "build:mac-arm": "bun build --compile --minify --target=bun-darwin-arm64 ./server.ts --outfile restbase-darwin-arm64",
-        "build:windows": "bun build --compile --minify --target=bun-windows-x64 ./server.ts --outfile restbase-windows-x64.exe"
+        "dev": "bun run --watch src/server.ts",
+        "start": "bun run src/server.ts",
+        "test": "bun test src/rest.test.ts",
+        "build": "bun build --compile --minify --sourcemap ./bin/restbase.ts --outfile restbase"
     },
     "dependencies": {
+        "@clack/prompts": "^1.0.0",
         "@hono/zod-validator": "^0.4.0",
         "hono": "^4.6.0",
         "pino": "^10.3.1",

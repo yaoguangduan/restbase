@@ -23,7 +23,7 @@ import {
     zodHook, bodyQuerySchema, bodyDeleteSchema, bodyDataSchema,
     type BodyQuery, type BodyWhereInput,
 } from "./types.ts";
-import {getTable, isAuthTable, run, type TblMeta} from "./db.ts";
+import {db, getTable, isAuthTable, run, type TblMeta} from "./db.ts";
 import {buildBodyDeleteSQL, buildBodyListSQL, buildDeleteSQL, buildListSQL} from "./query.ts";
 
 /* ═══════════ 注册路由 ═══════════ */
@@ -60,8 +60,7 @@ export function registerCrudRoutes(app: Hono<AppEnv>) {
         const body = c.req.valid("json")
 
         const {sql, values} = buildBodyDeleteSQL(tbl, body, userId);
-        const ids = await collectDeletedIds(tbl, sql, values);
-        await run(sql, values);
+        const ids = await transactionalDelete(tbl, sql, values);
         return c.json(ok({deleted: ids}));
     });
 
@@ -176,8 +175,7 @@ export function registerCrudRoutes(app: Hono<AppEnv>) {
         for (const [k, v] of url.searchParams.entries()) params[k] = v;
 
         const {sql, values} = buildDeleteSQL(tbl, params, userId);
-        const ids = await collectDeletedIds(tbl, sql, values);
-        await run(sql, values);
+        const ids = await transactionalDelete(tbl, sql, values);
         return c.json(ok({deleted: ids}));
     });
 
@@ -208,20 +206,31 @@ export function registerCrudRoutes(app: Hono<AppEnv>) {
 /* ═══════════ 内部工具 ═══════════ */
 
 /**
- * 在执行 DELETE 之前，先用相同 WHERE 条件 SELECT 出即将被删的主键列表。
+ * 在事务中先 SELECT 待删除的主键列表，再执行 DELETE，保证一致性。
  * 将 DELETE SQL 改写为 SELECT pk FROM ... WHERE ...
  */
-async function collectDeletedIds(
+async function transactionalDelete(
     tbl: TblMeta, deleteSql: string, values: unknown[],
 ): Promise<unknown[]> {
-    if (!tbl.pk) return [];
-    /* 把 "DELETE ... FROM ..." 替换为 "SELECT pk FROM ..."（SQL 模板可能含换行） */
+    if (!tbl.pk) {
+        await run(deleteSql, values);
+        return [];
+    }
     const selectSql = deleteSql.replace(
         /^DELETE\s+FROM/i,
         `SELECT ${q(tbl.pk)} FROM`,
     );
-    const rows = await run(selectSql, values);
-    return rows.map((r: any) => r[tbl.pk!]);
+    await db.unsafe("BEGIN");
+    try {
+        const rows = await run(selectSql, values);
+        const ids = rows.map((r: any) => r[tbl.pk!]);
+        await run(deleteSql, values);
+        await db.unsafe("COMMIT");
+        return ids;
+    } catch (err) {
+        await db.unsafe("ROLLBACK");
+        throw err;
+    }
 }
 
 /** 去掉 owner 字段 */

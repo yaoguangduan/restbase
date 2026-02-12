@@ -21,12 +21,13 @@ import {Hono} from "hono";
 import {requestId} from "hono/request-id";
 import {cors} from "hono/cors";
 import {serveStatic} from "hono/bun";
+import {resolve, dirname} from "path";
 import {type ApiRes, type AppEnv, AppError, cfg, ok, reqStore} from "./types.ts";
 import {log} from "./logger.ts";
 import {getTableMetaByName, getTablesMeta, initDb, syncTablesMeta} from "./db.ts";
 import {authMiddleware, registerAuthRoutes} from "./auth.ts";
 import {registerCrudRoutes} from "./crud.ts";
-import pkg from "./package.json";
+import pkg from "../package.json";
 
 /* ═══════════ 1. 安全检查 ═══════════ */
 
@@ -50,7 +51,7 @@ const app = new Hono<AppEnv>();
 /* ═══════════ 3. CORS 中间件 ═══════════ */
 
 app.use("*", cors({
-    origin: "*",                     // 允许所有来源（生产环境可改为具体域名）
+    origin: cfg.corsOrigin === "*" ? "*" : cfg.corsOrigin.split(",").map((s) => s.trim()),
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
     exposeHeaders: ["X-Request-Id"],
@@ -68,8 +69,26 @@ if (cfg.apiLimit > 0) {
     /** API 路径 → { tokens: 剩余令牌, lastRefill: 上次填充时间戳 } */
     const buckets = new Map<string, { tokens: number; lastRefill: number }>();
 
+    /**
+     * 归一化路径：只保留 /api/ 后前两段，截断更深的路径参数。
+     * 例如 /api/data/products/123 → /api/data/products
+     * 通用规则，新增接口无需修改。
+     */
+    function normalizePath(path: string): string {
+        const segs = path.split("/"); // ["", "api", "data", "products", "123"]
+        return segs.length > 4 ? segs.slice(0, 4).join("/") : path;
+    }
+
+    /** 定期清理超过 60 秒未使用的 bucket，防止内存泄漏 */
+    setInterval(() => {
+        const cutoff = Date.now() - 60_000;
+        for (const [key, bucket] of buckets) {
+            if (bucket.lastRefill < cutoff) buckets.delete(key);
+        }
+    }, 60_000).unref();
+
     app.use("/api/*", async (c, next) => {
-        const key = `${c.req.method} ${c.req.path}`;
+        const key = `${c.req.method} ${normalizePath(c.req.path)}`;
         const now = Date.now();
         let bucket = buckets.get(key);
 
@@ -161,7 +180,34 @@ app.onError((err, c) => {
 
 /* ═══════════ 8. 健康检查（公开） ═══════════ */
 
-app.get("/api/health", (c) => c.json(ok({status: "healthy"})));
+const startedAt = new Date().toISOString();
+
+app.get("/api/health", (c) => {
+    const mem = process.memoryUsage();
+    const cpuU = process.cpuUsage();
+    const uptimeSec = Math.floor(process.uptime());
+
+    return c.json(ok({
+        status: "healthy",
+        name: cfg.name || undefined,
+        port: cfg.port,
+        pid: process.pid,
+        cwd: process.cwd(),
+        logFile: cfg.logFile ? resolve(dirname(cfg.logFile), "current.log") : undefined,
+        startedAt,
+        uptime: uptimeSec,
+        memory: {
+            rss: mem.rss,
+            heapUsed: mem.heapUsed,
+            heapTotal: mem.heapTotal,
+            external: mem.external,
+        },
+        cpu: {
+            user: cpuU.user,       // microseconds
+            system: cpuU.system,   // microseconds
+        },
+    }));
+});
 
 /* ═══════════ 9. 鉴权中间件 ═══════════ */
 

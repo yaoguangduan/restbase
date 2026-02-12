@@ -74,6 +74,7 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:3333/api/data/products
 | `SVR_PORT`                | 服务端口                            | `3333`              |
 | `SVR_STATIC`              | 静态文件目录（相对路径），支持 SPA fallback    | 空（不启用）              |
 | `SVR_API_LIMIT`           | API 限流：每秒每个接口最大请求数（0 = 不限流）     | `100`               |
+| `SVR_CORS_ORIGIN`        | CORS 允许的来源（逗号分隔，`*` = 全部）       | `*`                 |
 | `DB_URL`                  | 数据库连接串                          | `sqlite://:memory:` |
 | `DB_AUTH_TABLE`           | 用户认证表名                          | `users`             |
 | `DB_AUTH_FIELD`           | 数据表 owner 字段名                   | `owner`             |
@@ -216,9 +217,50 @@ LOG_LEVEL=ERROR
 GET /api/health       ← 无需鉴权
 ```
 
+返回实例运行状态、资源占用等非敏感元信息：
+
 ```json
-{ "code": "OK", "data": { "status": "healthy" } }
+{
+  "code": "OK",
+  "data": {
+    "status": "healthy",
+    "name": "my-api",
+    "port": 3333,
+    "pid": 12345,
+    "cwd": "/home/user/my-project",
+    "logFile": "/home/user/my-project/log/app.log",
+    "startedAt": "2026-02-11T10:00:00.000Z",
+    "uptime": 3600,
+    "memory": {
+      "rss": 52428800,
+      "heapUsed": 12345678,
+      "heapTotal": 20971520,
+      "external": 1048576
+    },
+    "cpu": {
+      "user": 1500000,
+      "system": 300000
+    }
+  }
+}
 ```
+
+| 字段 | 说明 |
+|:---|:---|
+| `status` | 固定 `"healthy"` |
+| `name` | 实例名称（`SVR_NAME`，未设置时省略） |
+| `port` | 服务端口 |
+| `pid` | 进程 PID |
+| `cwd` | 进程工作目录（绝对路径） |
+| `logFile` | 日志文件路径（绝对路径，未配置时省略） |
+| `startedAt` | 进程启动时间（ISO 8601） |
+| `uptime` | 进程运行时长（秒） |
+| `memory.rss` | 常驻内存（bytes） |
+| `memory.heapUsed` | 已用堆内存（bytes） |
+| `memory.heapTotal` | 堆内存总量（bytes） |
+| `memory.external` | V8 外部内存（bytes） |
+| `cpu.user` | 用户态 CPU 时间（微秒） |
+| `cpu.system` | 内核态 CPU 时间（微秒） |
 
 ---
 
@@ -332,7 +374,7 @@ curl -X POST http://localhost:3333/api/auth/profile \
 
 ### 前端查询/删除接口（POST JSON Body）
 
-> 前端推荐使用以下接口，通过 JSON Body 传递复杂查询条件。配套 TypeScript 客户端见 [`client.md`](client.md)。
+> 前端推荐使用以下接口，通过 JSON Body 传递复杂查询条件。配套 TypeScript 客户端见 [`client/README.md`](../client/README.md)。
 
 #### POST /api/query/:table — 复杂查询
 
@@ -611,9 +653,19 @@ SVR_API_LIMIT=0 bun run server.ts
 
 ## CORS 跨域
 
-默认开启，允许所有来源访问 API：
+通过 `SVR_CORS_ORIGIN` 环境变量配置，默认允许所有来源：
 
-- `origin: *`（生产环境建议修改为具体域名）
+```bash
+# 允许所有来源（默认）
+SVR_CORS_ORIGIN=*
+
+# 仅允许指定域名
+SVR_CORS_ORIGIN=https://example.com
+
+# 多个域名（逗号分隔）
+SVR_CORS_ORIGIN=https://a.com,https://b.com
+```
+
 - 允许方法：`GET` / `POST` / `PUT` / `DELETE` / `OPTIONS`
 - 允许请求头：`Content-Type` / `Authorization` / `X-Request-Id`
 - 暴露响应头：`X-Request-Id`（前端可读取请求追踪 ID）
@@ -684,32 +736,36 @@ restbase/
 
 ```
 restbase/
-├── server.ts          # 入口：中间件、错误兜底、元数据路由、静态文件、启动
-├── types.ts           # 配置、类型定义、统一响应、AppError、Zod Schema
-├── db.ts              # 数据库连接、表结构分析、初始化 SQL、元数据查询
-├── auth.ts            # 鉴权中间件 + 登录/注册/资料接口
-├── crud.ts            # CRUD 路由 + Body 查询/删除路由
-├── query.ts           # URL 参数 → SQL + Body JSON → SQL
-├── logger.ts          # pino 日志（控制台 + 文件滚动）
+├── bin/
+│   └── restbase.ts         # CLI 入口（run/start/stop/status/log/env）
+├── src/
+│   ├── server.ts           # 入口：中间件、错误兜底、元数据路由、静态文件、启动
+│   ├── types.ts            # 配置、类型定义、统一响应、AppError、Zod Schema
+│   ├── db.ts               # 数据库连接、表结构分析、初始化 SQL、元数据查询
+│   ├── auth.ts             # 鉴权中间件 + 登录/注册/资料接口
+│   ├── crud.ts             # CRUD 路由 + Body 查询/删除路由
+│   ├── query.ts            # URL 参数 → SQL + Body JSON → SQL
+│   ├── logger.ts           # pino 日志（控制台 + 文件滚动）
+│   └── rest.test.ts        # 集成测试（bun test，137+ 用例）
 ├── client/
-│   └── restbase-client.ts  # TypeScript 前端客户端（零依赖）
+│   ├── restbase-client.ts  # TypeScript 前端客户端（零依赖）
+│   ├── README.md           # 前端客户端文档
+│   └── package.json
 ├── documents/
-│   ├── design.md      # 需求与设计文档
-│   ├── server.md      # 服务端详细文档（本文件）
-│   ├── client.md      # 前端客户端文档
-│   └── db_design.md   # 数据库设计指南
-├── init.sql           # 初始化 SQL（建表 + 种子数据示例）
-├── rest.test.ts       # 集成测试（bun test，137+ 用例）
-├── README.md          # 项目简介
-├── .env               # 开发环境配置
-└── .env.test          # 测试环境配置
+│   ├── design.md           # 需求与设计文档
+│   ├── server.md           # 服务端详细文档（本文件）
+│   └── db_design.md        # 数据库设计指南
+├── init.sql                # 初始化 SQL（建表 + 种子数据示例）
+├── README.md               # 项目简介
+├── .env / .env.test        # 环境配置
+└── package.json
 ```
 
 ---
 
 ## 前端客户端
 
-详见 [`client.md`](client.md)。
+详见 [`client/README.md`](../client/README.md)。
 
 ```ts
 import RestBase, { eq, gt, or, agg, between, sel } from "./client/restbase-client";

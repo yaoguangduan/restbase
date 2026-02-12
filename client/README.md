@@ -51,7 +51,7 @@ import RestBase, {
 ```ts
 import RestBase, { eq, gt, or, agg, sel } from "@dtdyq/restbase-client";
 
-// 同源部署（Vite proxy / 静态托管）— 不需要传 endpoint
+// 同源部署 — 不需要传 endpoint
 const rb = new RestBase();
 
 // 或指定后端地址
@@ -67,6 +67,16 @@ const list = await products.query()
   .orderDesc("price")
   .page(1, 20)
   .data();
+
+// ── 多节点负载均衡 ──
+// 所有节点连同一个数据库，请求随机分发
+const rb2 = new RestBase([
+  "http://node1:3333",
+  "http://node2:3333",
+  "http://node3:3333",
+]);
+await rb2.auth.login("admin", "admin"); // 登录一次，token 共享
+const list2 = await rb2.table("products").query().data(); // 随机打到某个节点
 ```
 
 ---
@@ -74,20 +84,32 @@ const list = await products.query()
 ## RestBase — 主入口
 
 ```ts
-const rb = new RestBase();                           // 同源
-const rb = new RestBase("http://localhost:3333");     // 跨域
+// 同源部署（Vite proxy / 静态托管）
+const rb = new RestBase();
+
+// 单个 endpoint
+const rb = new RestBase("http://localhost:3333");
+
+// 多个 endpoint — 负载均衡（每次请求随机选一个节点）
+const rb = new RestBase([
+  "http://localhost:3333",
+  "http://localhost:8080",
+  "http://localhost:9090",
+]);
 ```
 
-| 方法                    | 返回类型                                      | 说明                        |
-|:----------------------|:------------------------------------------|:--------------------------|
-| `rb.auth`             | `AuthClient`                              | 鉴权客户端                     |
-| `rb.table<T>(name)`   | `TableClient<T>`                          | 获取表操作客户端（可指定泛型）           |
-| `rb.health()`         | `Promise<ApiResponse>`                    | 健康检查                      |
-| `rb.tables()`         | `Promise<ApiResponse<TableMeta[]>>`       | 获取所有表元数据（不含 users）        |
-| `rb.tableMeta(name)`  | `Promise<ApiResponse<TableMeta \| null>>` | 获取单表元数据（不存在返回 null）       |
-| `rb.syncMeta()`       | `Promise<ApiResponse<TableMeta[]>>`       | 运行时同步 DB 表结构              |
-| `rb.setHeader(k, v)`  | `this`                                    | 设置自定义请求头                  |
-| `rb.setRequestId(id)` | `this`                                    | 设置请求追踪 ID（`X-Request-Id`） |
+> 多 endpoint 模式要求所有服务端实例连接同一个数据库。客户端共享同一套 auth 状态（token / Basic Auth），每次请求随机分发到不同节点，分散单节点压力。
+
+| 方法                    | 返回类型                                      | 说明                                  |
+|:----------------------|:------------------------------------------|:------------------------------------|
+| `rb.auth`             | `AuthClient`                              | 鉴权客户端                               |
+| `rb.table<T>(name)`   | `TableClient<T>`                          | 获取表操作客户端                             |
+| `rb.health()`         | `Promise<ApiResponse>`                    | 健康检查（返回 name/port/pid/uptime/mem/cpu） |
+| `rb.tables()`         | `Promise<ApiResponse<TableMeta[]>>`       | 获取所有表元数据（不含 users）                   |
+| `rb.tableMeta(name)`  | `Promise<ApiResponse<TableMeta \| null>>` | 获取单表元数据                              |
+| `rb.syncMeta()`       | `Promise<ApiResponse<TableMeta[]>>`       | 运行时同步 DB 表结构                         |
+| `rb.setHeader(k, v)`  | `this`                                    | 设置自定义请求头                             |
+| `rb.setRequestId(id)` | `this`                                    | 设置请求追踪 ID（`X-Request-Id`）            |
 
 **TableMeta 结构：**
 

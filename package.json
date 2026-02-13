@@ -1,6 +1,6 @@
 {
     "name": "@dtdyq/restbase",
-    "version": "2.2.1",
+    "version": "3.0.0",
     "description": "Zero-code REST API server for SQLite / MySQL — CLI with daemon mode, health monitoring, built-in auth & tenant isolation",
     "keywords": ["rest", "api", "crud", "sqlite", "mysql", "hono", "bun", "zero-code", "cli", "daemon"],
     "license": "MIT",

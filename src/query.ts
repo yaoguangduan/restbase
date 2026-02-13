@@ -21,7 +21,7 @@
  */
 import type {ColMeta, TblMeta} from "./db.ts";
 import {
-    AppError, ownerCond, q,
+    AppError, cfg, ownerCond, q,
     type BodyWhereItem, type BodyWhereInput, type BodySelectItem,
     type BodyOrderItem, type BodyQuery,
 } from "./types.ts";
@@ -580,4 +580,61 @@ function bodyBuildOrd(items: BodyOrderItem[]): string {
         }
         return `${q(item.field)} ${(item.dir || "asc").toUpperCase()}`;
     }).join(", ");
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Body 模式入口: UPDATE（条件批量更新）
+   ══════════════════════════════════════════════════════════════ */
+
+export interface UpdateSQL {
+    updateSql: string;
+    selectSql: string;
+    updateValues: unknown[];
+    selectValues: unknown[];
+}
+
+export function buildBodyUpdateSQL(
+    tbl: TblMeta, set: Record<string, unknown>, where: BodyWhereInput, userId: number,
+): UpdateSQL {
+    /* 校验 where 非空 */
+    if (Array.isArray(where) && (where as any[]).length === 0) {
+        throw new AppError("QUERY_ERROR", "where condition must not be empty for update");
+    }
+
+    /* 1) 构建 SET 子句（占位符从 $1 开始） */
+    const setClauses: string[] = [];
+    const setVals: unknown[] = [];
+    let n = 1;
+
+    for (const [k, v] of Object.entries(set)) {
+        if (k === tbl.pk) continue;
+        if (k === cfg.ownerField && tbl.hasOwner) continue;
+        if (tbl.colMap.has(k)) {
+            setClauses.push(`${q(k)} = $${n++}`);
+            setVals.push(v);
+        }
+    }
+    if (setClauses.length === 0) {
+        throw new AppError("QUERY_ERROR", "No valid columns in set");
+    }
+
+    /* 2) 构建 WHERE 子句（UPDATE 版，占位符接续 SET） */
+    const updCtx: Ctx = {n};
+    const updW = bodyBuildWhere(tbl, where, userId, updCtx);
+
+    /* 3) 构建 WHERE 子句（SELECT 版，占位符从 $1 开始） */
+    const selCtx: Ctx = {n: 1};
+    const selW = bodyBuildWhere(tbl, where, userId, selCtx);
+
+    if (!updW.where) {
+        throw new AppError("QUERY_ERROR", "where condition is required for update");
+    }
+
+    const t = q(tbl.name);
+    return {
+        updateSql: `UPDATE ${t} SET ${setClauses.join(", ")} ${updW.where}`,
+        selectSql: `SELECT ${q(tbl.pk!)} FROM ${t} ${selW.where}`,
+        updateValues: [...setVals, ...updW.values],
+        selectValues: [...selW.values],
+    };
 }

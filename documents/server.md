@@ -9,7 +9,7 @@
 - **零代码 CRUD** — 自动分析数据库表结构，生成完整 REST 接口
 - **租户隔离** — 含 `owner` 字段的表自动按用户过滤数据
 - **双鉴权** — JWT + Basic Auth 开箱即用
-- **两套查询接口** — URL 参数（CLI 调试）+ POST Body（前端推荐）
+- **四路径 API 设计** — `/api/query`、`/api/delete`、`/api/update`、`/api/save` 职责分离，URL 参数 + POST Body 双模式
 - **类型安全的 TypeScript 客户端** — 链式 API、编译期推导 SELECT 返回类型
 - **结构化日志** — pino + 文件滚动 + 请求追踪 ID
 - **JSON 格式化** — 所有响应自动 pretty print
@@ -53,14 +53,14 @@ curl -X POST http://localhost:3333/api/auth/register \
   -d '{"username":"admin","password":"admin"}'
 
 # Basic Auth 查询 products
-curl -u admin:admin http://localhost:3333/api/data/products
+curl -u admin:admin http://localhost:3333/api/query/products
 
 # JWT 登录
 TOKEN=$(curl -s -X POST http://localhost:3333/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"username":"admin","password":"admin"}' | jq -r '.data')
 
-curl -H "Authorization: Bearer $TOKEN" http://localhost:3333/api/data/products
+curl -H "Authorization: Bearer $TOKEN" http://localhost:3333/api/query/products
 ```
 
 ---
@@ -372,11 +372,94 @@ curl -X POST http://localhost:3333/api/auth/profile \
 
 ---
 
-### 前端查询/删除接口（POST JSON Body）
+### /api/query — 查询
 
-> 前端推荐使用以下接口，通过 JSON Body 传递复杂查询条件。配套 TypeScript 客户端见 [`client/README.md`](../client/README.md)。
+> 配套 TypeScript 客户端见 [`client/README.md`](../client/README.md)。
 
-#### POST /api/query/:table — 复杂查询
+#### GET /api/query/:table — URL 参数查询
+
+适合 curl / 命令行快速调试。支持与旧版完全相同的 WHERE 查询语法，仅路径由 `/api/data` 改为 `/api/query`。
+
+**字段条件：**
+
+```bash
+# 等值（默认 eq）
+curl -u admin:admin 'http://localhost:3333/api/query/products?category=Books'
+
+# 比较操作符
+curl -u admin:admin 'http://localhost:3333/api/query/products?price=gt.100&stock=le.50'
+
+# LIKE（* 自动转 %）
+curl -u admin:admin 'http://localhost:3333/api/query/products?name=like.Pro*'
+
+# IS NULL / IS NOT NULL
+curl -u admin:admin 'http://localhost:3333/api/query/products?tags=is.null'
+curl -u admin:admin 'http://localhost:3333/api/query/products?name=nis.null'
+
+# IN
+curl -u admin:admin 'http://localhost:3333/api/query/products?category=in.(Books,Toys,Food)'
+
+# NOT IN
+curl -u admin:admin 'http://localhost:3333/api/query/products?category=nin.(Books,Toys)'
+
+# BETWEEN（... 语法）
+curl -u admin:admin 'http://localhost:3333/api/query/products?price=in(100...500)'
+```
+
+**多条件（AND）：**
+
+```bash
+curl -u admin:admin 'http://localhost:3333/api/query/products?name=like.Pro*&price=gt.100'
+```
+
+**逻辑组合（嵌套）：**
+
+```bash
+# OR
+curl -u admin:admin 'http://localhost:3333/api/query/products?or=price.gt.900,stock.lt.10'
+
+# AND + 嵌套 OR
+curl -u admin:admin 'http://localhost:3333/api/query/products?and=category.eq.Books,or.(price.gt.500,stock.lt.10)'
+
+# 字段条件 + OR 混合
+curl -u admin:admin 'http://localhost:3333/api/query/products?is_active=eq.1&or=category.eq.Books,category.eq.Toys'
+```
+
+> 语法：`.` 分割字段.操作符.值，`,` 分割多个条件，`()` 嵌套子组。
+
+**SELECT / ORDER / GROUP / 分页：**
+
+```bash
+# 选择字段
+curl -u admin:admin 'http://localhost:3333/api/query/products?select=name,price'
+
+# 字段别名
+curl -u admin:admin 'http://localhost:3333/api/query/products?select=price:unitPrice'
+
+# 聚合（返回 key 为 "count:id"）
+curl -u admin:admin 'http://localhost:3333/api/query/products?select=count:id'
+
+# 聚合 + 别名（返回 key 为 "maxPrice"）
+curl -u admin:admin 'http://localhost:3333/api/query/products?select=max:price:maxPrice,min:price:minPrice'
+
+# 分组统计
+curl -u admin:admin 'http://localhost:3333/api/query/products?select=category,count:id:total,avg:price:avgPrice&group=category'
+
+# 排序
+curl -u admin:admin 'http://localhost:3333/api/query/products?order=desc.price,asc.name'
+
+# 分页（响应含 total）
+curl -u admin:admin 'http://localhost:3333/api/query/products?pageNo=1&pageSize=10'
+
+# 综合
+curl -u admin:admin 'http://localhost:3333/api/query/products?price=gt.50&select=name,price&order=desc.price&pageNo=1&pageSize=5'
+```
+
+> **注意**：URL 模式 LIKE 使用 `*` 通配符（自动转 SQL `%`），Body 模式直接使用 `%`。
+
+#### POST /api/query/:table — Body 复杂查询
+
+前端推荐，通过 JSON Body 传递复杂查询条件：
 
 ```bash
 curl -X POST http://localhost:3333/api/query/products \
@@ -443,9 +526,37 @@ curl -X POST http://localhost:3333/api/query/products \
 
 传入 `pageNo` + `pageSize`，响应自动附带 `total` / `pageNo` / `pageSize`。
 
-#### POST /api/delete/:table — 条件删除
+#### GET /api/query/:table/:pk — 按主键查询
 
-Body 直接是 where 结构：
+```bash
+curl -u admin:admin http://localhost:3333/api/query/products/1
+```
+
+- 有 owner 的表自动限定当前用户
+- 不存在时 `data: null`，`code: "OK"`
+- 表无主键时返回 `TABLE_ERROR`
+- 返回结果自动去掉 `owner` 字段
+
+---
+
+### /api/delete — 删除
+
+#### DELETE /api/delete/:table — URL 参数条件删除
+
+支持与 GET 查询完全相同的 WHERE 语法：
+
+```bash
+curl -X DELETE -u admin:admin 'http://localhost:3333/api/delete/products?price=lt.10'
+curl -X DELETE -u admin:admin 'http://localhost:3333/api/delete/products?or=price.gt.900,stock.lt.5'
+```
+
+```json
+{ "code": "OK", "data": { "deleted": [3, 7, 12] } }
+```
+
+#### POST /api/delete/:table — Body 条件删除
+
+Body 直接是 where 结构（与 query 的 where 格式相同）：
 
 ```bash
 # 多条件
@@ -471,163 +582,108 @@ curl -X POST http://localhost:3333/api/delete/products \
 { "code": "OK", "data": { "deleted": [3, 7, 12] } }
 ```
 
-> `deleted` 为被删除记录的主键值列表（而非数量），便于前端同步本地状态。
-
----
-
-### 数据操作接口（URL 参数模式）
-
-> 适合 curl / 命令行快速调试。前端推荐使用上方 POST Body 接口。
-
-#### GET /api/data/:table/:id — 按主键查询
+#### DELETE /api/delete/:table/:pk — 按主键删除
 
 ```bash
-curl -u admin:admin http://localhost:3333/api/data/products/1
-```
-
-- 有 owner 的表自动限定当前用户
-- 不存在时 `data: null`，`code: "OK"`
-- 表无主键时返回 `TABLE_ERROR`
-- 返回结果自动去掉 `owner` 字段
-
-#### POST /api/data/:table — 创建
-
-```bash
-# 单条
-curl -X POST -u admin:admin \
-  -H 'Content-Type: application/json' \
-  http://localhost:3333/api/data/products \
-  -d '{"name":"Widget","price":29.9,"stock":100}'
-
-# 批量
-curl -X POST -u admin:admin \
-  -H 'Content-Type: application/json' \
-  http://localhost:3333/api/data/products \
-  -d '[{"name":"A","price":10},{"name":"B","price":20}]'
-```
-
-- 自动注入 `owner`（有 owner 的表）
-- 主键冲突返回 `CONFLICT`
-- 成功返回 `{ "code": "OK", "data": { "created": [101, 102] } }`（`created` 为新建记录的主键值列表）
-
-#### PUT /api/data/:table — Upsert
-
-```bash
-curl -X PUT -u admin:admin \
-  -H 'Content-Type: application/json' \
-  http://localhost:3333/api/data/products \
-  -d '[{"id":1,"price":88.8},{"name":"New","price":50}]'
-```
-
-- 有主键且记录存在 → `UPDATE SET` 仅传入字段（增量覆盖，未传字段不修改）
-- 无主键或记录不存在 → `INSERT`
-- 成功返回 `{ "code": "OK", "data": { "created": [102], "updated": [1] } }`（区分新建和更新的主键）
-
-#### DELETE /api/data/:table/:id — 按主键删除
-
-```bash
-curl -X DELETE -u admin:admin http://localhost:3333/api/data/products/1
+curl -X DELETE -u admin:admin http://localhost:3333/api/delete/products/1
 ```
 
 ```json
 { "code": "OK", "data": { "deleted": [1] } }
 ```
 
-> 未找到时返回 `{ "deleted": [] }`。
+> 未找到时返回 `{ "deleted": [] }`。所有删除接口的 `deleted` 为被删除记录的主键值列表，便于前端同步本地状态。
 
-#### DELETE /api/data/:table — URL 参数条件删除
+---
 
-支持与 GET 完全相同的 WHERE 查询语法：
+### /api/update — 条件批量更新
+
+#### POST /api/update/:table — 条件更新
+
+按 where 条件批量更新匹配记录的指定字段。
+
+**Body：**
+
+```json
+{
+  "set": { "field": value, ... },
+  "where": <where 格式与 query/delete 相同>
+}
+```
+
+- `set` 必填，至少包含一个字段
+- `where` 必填，不能为空
 
 ```bash
-curl -X DELETE -u admin:admin 'http://localhost:3333/api/data/products?price=lt.10'
-curl -X DELETE -u admin:admin 'http://localhost:3333/api/data/products?or=price.gt.900,stock.lt.5'
+curl -X POST http://localhost:3333/api/update/products \
+  -u admin:admin \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "set": { "price": 99.9, "is_active": 1 },
+    "where": [["category", "eq", "Electronics"]]
+  }'
 ```
 
 ```json
-{ "code": "OK", "data": { "deleted": [3, 7, 12] } }
+{ "code": "OK", "data": { "updated": [1, 5, 12] } }
 ```
 
-> `deleted` 为被删除记录的主键值列表。
+> `updated` 为被更新记录的主键值列表。
 
-#### GET /api/data/:table — URL 参数查询
+---
 
-**字段条件：**
+### /api/save — 插入与更新
+
+#### POST /api/save/:table — 严格插入
+
+仅插入，不更新。主键冲突返回 `CONFLICT`。
 
 ```bash
-# 等值（默认 eq）
-curl -u admin:admin 'http://localhost:3333/api/data/products?category=Books'
+# 单条
+curl -X POST -u admin:admin \
+  -H 'Content-Type: application/json' \
+  http://localhost:3333/api/save/products \
+  -d '{"name":"Widget","price":29.9,"stock":100}'
 
-# 比较操作符
-curl -u admin:admin 'http://localhost:3333/api/data/products?price=gt.100&stock=le.50'
-
-# LIKE（* 自动转 %）
-curl -u admin:admin 'http://localhost:3333/api/data/products?name=like.Pro*'
-
-# IS NULL / IS NOT NULL
-curl -u admin:admin 'http://localhost:3333/api/data/products?tags=is.null'
-curl -u admin:admin 'http://localhost:3333/api/data/products?name=nis.null'
-
-# IN
-curl -u admin:admin 'http://localhost:3333/api/data/products?category=in.(Books,Toys,Food)'
-
-# NOT IN
-curl -u admin:admin 'http://localhost:3333/api/data/products?category=nin.(Books,Toys)'
-
-# BETWEEN（... 语法）
-curl -u admin:admin 'http://localhost:3333/api/data/products?price=in(100...500)'
+# 批量
+curl -X POST -u admin:admin \
+  -H 'Content-Type: application/json' \
+  http://localhost:3333/api/save/products \
+  -d '[{"name":"A","price":10},{"name":"B","price":20}]'
 ```
 
-**多条件（AND）：**
+- 自动注入 `owner`（有 owner 的表）
+- 成功返回 `{ "code": "OK", "data": { "created": [101, 102] } }`（`created` 为新建记录的主键值列表）
+
+#### PUT /api/save/:table — Upsert
+
+有主键且记录存在 → 增量更新；无主键或记录不存在 → 插入。
 
 ```bash
-curl -u admin:admin 'http://localhost:3333/api/data/products?name=like.Pro*&price=gt.100'
+curl -X PUT -u admin:admin \
+  -H 'Content-Type: application/json' \
+  http://localhost:3333/api/save/products \
+  -d '[{"id":1,"price":88.8},{"name":"New","price":50}]'
 ```
 
-**逻辑组合（嵌套）：**
+- 成功返回 `{ "code": "OK", "data": { "created": [102], "updated": [1] } }`（区分新建和更新的主键）
+
+#### PATCH /api/save/:table — 严格更新
+
+仅更新已存在记录。Body 为单对象或数组，必须包含主键字段，记录必须存在，否则返回错误。
 
 ```bash
-# OR
-curl -u admin:admin 'http://localhost:3333/api/data/products?or=price.gt.900,stock.lt.10'
-
-# AND + 嵌套 OR
-curl -u admin:admin 'http://localhost:3333/api/data/products?and=category.eq.Books,or.(price.gt.500,stock.lt.10)'
-
-# 字段条件 + OR 混合
-curl -u admin:admin 'http://localhost:3333/api/data/products?is_active=eq.1&or=category.eq.Books,category.eq.Toys'
+curl -X PATCH -u admin:admin \
+  -H 'Content-Type: application/json' \
+  http://localhost:3333/api/save/products \
+  -d '[{"id":1,"price":99.9},{"id":2,"stock":50}]'
 ```
 
-> 语法：`.` 分割字段.操作符.值，`,` 分割多个条件，`()` 嵌套子组。
-
-**SELECT / ORDER / GROUP / 分页：**
-
-```bash
-# 选择字段
-curl -u admin:admin 'http://localhost:3333/api/data/products?select=name,price'
-
-# 字段别名
-curl -u admin:admin 'http://localhost:3333/api/data/products?select=price:unitPrice'
-
-# 聚合（返回 key 为 "count:id"）
-curl -u admin:admin 'http://localhost:3333/api/data/products?select=count:id'
-
-# 聚合 + 别名（返回 key 为 "maxPrice"）
-curl -u admin:admin 'http://localhost:3333/api/data/products?select=max:price:maxPrice,min:price:minPrice'
-
-# 分组统计
-curl -u admin:admin 'http://localhost:3333/api/data/products?select=category,count:id:total,avg:price:avgPrice&group=category'
-
-# 排序
-curl -u admin:admin 'http://localhost:3333/api/data/products?order=desc.price,asc.name'
-
-# 分页（响应含 total）
-curl -u admin:admin 'http://localhost:3333/api/data/products?pageNo=1&pageSize=10'
-
-# 综合
-curl -u admin:admin 'http://localhost:3333/api/data/products?price=gt.50&select=name,price&order=desc.price&pageNo=1&pageSize=5'
+```json
+{ "code": "OK", "data": { "updated": [1, 2] } }
 ```
 
-> **注意**：URL 模式 LIKE 使用 `*` 通配符（自动转 SQL `%`），Body 模式直接使用 `%`。
+> 响应格式汇总：POST /api/save → `{ "created": [...] }`；PUT /api/save → `{ "created": [...], "updated": [...] }`；PATCH /api/save → `{ "updated": [...] }`。
 
 ---
 
@@ -647,7 +703,7 @@ SVR_API_LIMIT=0 bun run server.ts
 - 超限返回 `{ "code": "RATE_LIMITED", "message": "Rate limit exceeded (100 req/s)" }`
 - 响应头 `Retry-After: 1` 提示客户端 1 秒后重试
 - 仅对 `/api/*` 生效，静态文件不受限流影响
-- 粒度为接口级别（`GET /api/data/products` 与 `POST /api/data/products` 独立计数）
+- 粒度为接口级别（`GET /api/query/products` 与 `POST /api/query/products` 独立计数）
 
 ---
 
@@ -666,10 +722,37 @@ SVR_CORS_ORIGIN=https://example.com
 SVR_CORS_ORIGIN=https://a.com,https://b.com
 ```
 
-- 允许方法：`GET` / `POST` / `PUT` / `DELETE` / `OPTIONS`
+- 允许方法：`GET` / `POST` / `PUT` / `PATCH` / `DELETE` / `OPTIONS`
 - 允许请求头：`Content-Type` / `Authorization` / `X-Request-Id`
 - 暴露响应头：`X-Request-Id`（前端可读取请求追踪 ID）
 - Preflight 缓存：24 小时
+
+---
+
+## Content-Type 校验
+
+所有 `POST` / `PUT` / `PATCH` 请求**必须**携带 `Content-Type: application/json` 请求头，否则服务器将返回错误：
+
+```json
+{ "code": "VALIDATION_ERROR", "message": "Content-Type must be application/json" }
+```
+
+> **常见问题**：使用 `curl --data` 时默认 Content-Type 为 `application/x-www-form-urlencoded`，需手动指定：
+>
+> ```bash
+> # 方法 1：手动指定 Content-Type
+> curl -X POST -u admin:admin \
+>   -H 'Content-Type: application/json' \
+>   http://localhost:3333/api/query/products \
+>   -d '{"where":["id","eq","1"]}'
+>
+> # 方法 2：curl 7.82+ 使用 --json（自动设置 Content-Type）
+> curl -u admin:admin \
+>   --json '{"where":["id","eq","1"]}' \
+>   http://localhost:3333/api/query/products
+> ```
+
+`GET` 和 `DELETE` 请求不受此限制。
 
 ---
 
@@ -765,10 +848,10 @@ restbase/
 
 ## 前端客户端
 
-详见 [`client/README.md`](../client/README.md)。
+详见 [`client/README.md`](../client/README.md)。客户端对应新的四路径 API：`/api/query`、`/api/delete`、`/api/update`、`/api/save`。
 
 ```ts
-import RestBase, { eq, gt, or, agg, between, sel } from "./client/restbase-client";
+import RestBase, { eq, gt, or, agg } from "./client/restbase-client";
 
 const rb = new RestBase("http://localhost:3333");
 await rb.auth.login("admin", "admin");
@@ -776,7 +859,7 @@ await rb.auth.login("admin", "admin");
 interface Product { id: number; name: string; price: number; stock: number; category: string }
 const products = rb.table<Product>("products");
 
-// 类型安全 select：data 类型自动推导为 { name: string; price: number }[]
+// 查询（POST /api/query/:table）：类型安全 select
 const data = await products.query()
   .select("name", "price")
   .where(gt("price", 100))
@@ -784,16 +867,32 @@ const data = await products.query()
   .page(1, 20)
   .data();
 
-// 聚合 + 分组：data 类型为 { category: string; total: number; "avg:price": number }[]
+// 按主键获取（GET /api/query/:table/:pk）
+const one = await products.get(1);
+
+// 聚合 + 分组
 const stats = await products.query()
   .select("category", agg("count", "id", "total"), agg("avg", "price"))
   .groupBy("category")
   .data();
 
-// 条件删除
-await products.deleteWhere()
-  .where(or(gt("price", 900), eq("stock", 0)))
-  .exec();
+// 严格插入（POST /api/save/:table）→ { created: [...] }
+await products.insert({ name: "Widget", price: 29.9 });
+
+// Upsert（PUT /api/save/:table）→ { created: [...], updated: [...] }
+await products.upsert([{ id: 1, price: 88.8 }, { name: "New", price: 50 }]);
+
+// 严格更新（PATCH /api/save/:table）→ { updated: [...] }
+await products.update([{ id: 1, price: 99.9 }]);
+
+// 条件批量更新（POST /api/update/:table）→ { updated: [...] }
+await products.updateWhere().set({ price: 99.9 }).where(eq("category", "Electronics")).exec();
+
+// 条件删除（POST /api/delete/:table）→ { deleted: [...] }
+await products.deleteWhere().where(or(gt("price", 900), eq("stock", 0))).exec();
+
+// 按主键删除（DELETE /api/delete/:table/:pk）→ { deleted: [...] }
+await products.delete(1);
 ```
 
 ---

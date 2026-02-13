@@ -4,11 +4,13 @@
  * 零依赖、纯 TypeScript，浏览器 / Node / Bun / Deno 通用。
  *
  * 路由结构：
- *   /api/auth/*           — 鉴权
- *   /api/query/:table     — POST Body 查询（前端推荐）
- *   /api/delete/:table    — POST Body 条件删除（前端推荐）
- *   /api/data/:table      — CRUD（POST 创建 / PUT upsert）
- *   /api/data/:table/:id  — 按主键 GET / DELETE
+ *   /api/auth/*               — 鉴权
+ *   /api/query/:table         — GET URL 查询 / POST Body 查询
+ *   /api/query/:table/:pk     — GET 按主键取单条
+ *   /api/delete/:table        — DELETE URL 删除 / POST Body 删除
+ *   /api/delete/:table/:pk    — DELETE 按主键删除
+ *   /api/update/:table        — POST 条件批量更新
+ *   /api/save/:table          — POST 插入 / PUT Upsert / PATCH 严格更新
  *
  * @example
  * ```ts
@@ -343,6 +345,41 @@ export class DeleteBuilder {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   UpdateBuilder — 链式条件批量更新（POST /api/update/:table）
+   ══════════════════════════════════════════════════════════════ */
+
+export class UpdateBuilder {
+    private _set: Record<string, unknown> = {};
+    private _conditions: Condition[] = [];
+    private _execFn: (body: unknown) => Promise<ApiResponse<{ updated: unknown[] }>>;
+
+    constructor(execFn: (body: unknown) => Promise<ApiResponse<{ updated: unknown[] }>>) {
+        this._execFn = execFn;
+    }
+
+    /** 设置要更新的字段值 */
+    set(data: Record<string, unknown>): this {
+        Object.assign(this._set, data);
+        return this;
+    }
+
+    /** 添加 WHERE 条件 */
+    where(...conditions: Condition[]): this {
+        this._conditions.push(...conditions);
+        return this;
+    }
+
+    /** 执行更新，返回被更新记录的主键列表 */
+    async exec(): Promise<ApiResponse<{ updated: unknown[] }>> {
+        const body = {
+            set: this._set,
+            where: conditionsToWhere(this._conditions) ?? [],
+        };
+        return this._execFn(body);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════
    TableClient — 单表操作
    ══════════════════════════════════════════════════════════════ */
 
@@ -362,30 +399,42 @@ export class TableClient<T = Record<string, unknown>> {
         );
     }
 
-    /** 按主键获取单条（GET /api/data/:table/:id） */
-    async getByPk(id: string | number): Promise<ApiResponse<T | null>> {
-        return this._http.get<T | null>(`/api/data/${this._name}/${id}`);
+    /** 按主键获取单条（GET /api/query/:table/:pk） */
+    async get(id: string | number): Promise<ApiResponse<T | null>> {
+        return this._http.get<T | null>(`/api/query/${this._name}/${id}`);
     }
 
-    /** 创建记录（POST /api/data/:table），返回 { created: [主键值...] } */
-    async create(data: Partial<T> | Partial<T>[]): Promise<ApiResponse<{ created: unknown[] }>> {
-        return this._http.post<{ created: unknown[] }>(`/api/data/${this._name}`, data);
+    /** 严格插入（POST /api/save/:table），已存在则报错，返回 { created: [主键值...] } */
+    async insert(data: Partial<T> | Partial<T>[]): Promise<ApiResponse<{ created: unknown[] }>> {
+        return this._http.post<{ created: unknown[] }>(`/api/save/${this._name}`, data);
     }
 
-    /** 不存在创建、存在增量更新（PUT /api/data/:table），返回 { created: [...], updated: [...] } */
-    async put(data: Partial<T> | Partial<T>[]): Promise<ApiResponse<{ created: unknown[]; updated: unknown[] }>> {
-        return this._http.put<{ created: unknown[]; updated: unknown[] }>(`/api/data/${this._name}`, data);
+    /** Upsert：不存在插入、存在增量更新（PUT /api/save/:table），返回 { created: [...], updated: [...] } */
+    async upsert(data: Partial<T> | Partial<T>[]): Promise<ApiResponse<{ created: unknown[]; updated: unknown[] }>> {
+        return this._http.put<{ created: unknown[]; updated: unknown[] }>(`/api/save/${this._name}`, data);
     }
 
-    /** 按主键删除（DELETE /api/data/:table/:id），返回 { deleted: [主键值] } */
-    async deleteByPk(id: string | number): Promise<ApiResponse<{ deleted: unknown[] }>> {
-        return this._http.delete<{ deleted: unknown[] }>(`/api/data/${this._name}/${id}`);
+    /** 严格更新：不存在报错，必须带 PK（PATCH /api/save/:table），返回 { updated: [...] } */
+    async update(data: Partial<T> | Partial<T>[]): Promise<ApiResponse<{ updated: unknown[] }>> {
+        return this._http.patch<{ updated: unknown[] }>(`/api/save/${this._name}`, data);
+    }
+
+    /** 按主键删除（DELETE /api/delete/:table/:pk），返回 { deleted: [主键值] } */
+    async delete(id: string | number): Promise<ApiResponse<{ deleted: unknown[] }>> {
+        return this._http.delete<{ deleted: unknown[] }>(`/api/delete/${this._name}/${id}`);
     }
 
     /** 创建链式条件删除（POST /api/delete/:table） */
     deleteWhere(): DeleteBuilder {
         return new DeleteBuilder((body) =>
             this._http.post<{ deleted: unknown[] }>(`/api/delete/${this._name}`, body),
+        );
+    }
+
+    /** 创建链式条件批量更新（POST /api/update/:table） */
+    updateWhere(): UpdateBuilder {
+        return new UpdateBuilder((body) =>
+            this._http.post<{ updated: unknown[] }>(`/api/update/${this._name}`, body),
         );
     }
 }
@@ -503,6 +552,10 @@ class HttpClient {
 
     put<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
         return this._fetch<T>("PUT", path, undefined, body);
+    }
+
+    patch<T>(path: string, body?: unknown): Promise<ApiResponse<T>> {
+        return this._fetch<T>("PATCH", path, undefined, body);
     }
 
     delete<T>(path: string, params?: Record<string, string>): Promise<ApiResponse<T>> {

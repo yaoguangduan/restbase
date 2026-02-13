@@ -52,7 +52,7 @@ const app = new Hono<AppEnv>();
 
 app.use("*", cors({
     origin: cfg.corsOrigin === "*" ? "*" : cfg.corsOrigin.split(",").map((s) => s.trim()),
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
     exposeHeaders: ["X-Request-Id"],
     maxAge: 86400,                   // preflight 缓存 24 小时
@@ -209,7 +209,23 @@ app.get("/api/health", (c) => {
     }));
 });
 
-/* ═══════════ 9. 鉴权中间件 ═══════════ */
+/* ═══════════ 9. Content-Type 校验（POST/PUT/PATCH 必须为 JSON） ═══════════ */
+
+app.use("/api/*", async (c, next) => {
+    const m = c.req.method;
+    if (m === "POST" || m === "PUT" || m === "PATCH") {
+        const ct = c.req.header("content-type");
+        if (!ct || !ct.includes("application/json")) {
+            return c.json({
+                code: "VALIDATION_ERROR",
+                message: "Content-Type must be application/json",
+            } as ApiRes);
+        }
+    }
+    return next();
+});
+
+/* ═══════════ 10. 鉴权中间件 ═══════════ */
 
 app.use("/api/*", authMiddleware);
 

@@ -183,7 +183,14 @@ export type BodyQuery = z.infer<typeof bodyQuerySchema>;
 /** POST /api/delete/:table — 删除 Body（直接是 where 条件） */
 export const bodyDeleteSchema = bodyWhereInputSchema;
 
-/** POST|PUT /api/data/:table — 创建/更新 Body（单对象或对象数组） */
+/** POST /api/update/:table — 条件批量更新 Body */
+export const bodyUpdateSchema = z.object({
+    set: z.record(z.string(), z.unknown()),
+    where: bodyWhereInputSchema,
+});
+export type BodyUpdate = z.infer<typeof bodyUpdateSchema>;
+
+/** POST|PUT|PATCH /api/save/:table — 创建/更新 Body（单对象或对象数组） */
 export const bodyDataSchema = z.union([
     z.record(z.string(), z.unknown()),
     z.array(z.record(z.string(), z.unknown())).min(1),

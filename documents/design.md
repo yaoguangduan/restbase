@@ -329,7 +329,7 @@ RestBase 是一个**零代码通用 REST 服务**：连接 SQLite 或 MySQL 数�
 | 前缀  | `"desc.price"` / `"asc.name"`    | 指定方向   |
 | 对象  | `{"field":"stock","dir":"desc"}` | 显式格式   |
 
-**响应**：与 `GET /api/data/:table` 一致，含 `data` / `pageNo` / `pageSize` / `total`（分页时）。
+**响应**：与 `GET /api/query/:table` 一致，含 `data` / `pageNo` / `pageSize` / `total`（分页时）。
 
 #### POST /api/delete/:table — 条件删除
 
@@ -354,50 +354,11 @@ Body 直接就是 where 结构（支持上述所有 where 格式）：
 
 ---
 
-### 5.5 数据操作接口（URL 参数模式，适合 CLI 调试）
+### 5.5 查询接口（URL 参数模式，适合 CLI 调试）
 
 > 以下接口使用 URL 查询参数传递条件，适合 curl/命令行快速调试。前端推荐使用 5.4 节的 POST Body 接口。
 
-#### GET /api/data/:table/:id — 按主键查询
-
-- SQL: `SELECT * FROM table WHERE pk = :id AND owner = :userId`（有 owner 时）
-- 表无主键时返回 `TABLE_ERROR`
-- 记录不存在时 `data` 为 `null`，`code` 仍为 `OK`
-- 返回结果自动去掉 `owner` 字段
-
-#### POST /api/data/:table — 创建
-
-- 请求体：单个 JSON 对象或 JSON 数组（批量创建）
-- 自动注入 `owner` 字段（有 owner 的表）
-- 主键冲突返回 `CONFLICT`
-- 成功返回：`{ "code": "OK", "data": { "created": [1, 2, 3] } }`（`created` 为插入记录的主键值列表）
-
-#### PUT /api/data/:table — Upsert（不存在创建，存在增量更新）
-
-- 请求体同 POST
-- 有主键且记录存在 → `UPDATE SET` 仅传入字段（增量覆盖，未传字段不修改）
-- 无主键或记录不存在 → `INSERT`
-- 成功返回：`{ "code": "OK", "data": { "created": [新建主键列表], "updated": [更新主键列表] } }`
-
-#### DELETE /api/data/:table/:id — 按主键删除
-
-- SQL: `DELETE FROM table WHERE pk = :id AND owner = :userId`
-- 表无主键时返回 `TABLE_ERROR`
-- 响应：`{ "code": "OK", "data": { "deleted": [被删除的主键值] } }`（如 `{ "deleted": [1] }`，未找到则 `{ "deleted": [] }`）
-
-#### DELETE /api/data/:table — 按条件批量删除
-
-支持与 GET 完全相同的 WHERE 查询语法（字段条件、`or`/`and` 嵌套等），不支持 select/order/page/group。
-
-```
-DELETE /api/data/:table?age=gt.30
-DELETE /api/data/:table?name=like.zhang*
-DELETE /api/data/:table?or=age.gt.50,name.eq.test
-```
-
-**响应**：`{ "code": "OK", "data": { "deleted": [被删除记录的主键列表] } }`
-
-#### GET /api/data/:table — URL 参数查询
+#### GET /api/query/:table — URL 参数查询
 
 最复杂的接口，支持通过 URL query 构建完整查询条件。
 
@@ -455,9 +416,74 @@ DELETE /api/data/:table?or=age.gt.50,name.eq.test
 
 支持的聚合函数：`avg`、`max`、`min`、`count`、`sum`。
 
+#### GET /api/query/:table/:pk — 按主键查询
+
+- SQL: `SELECT * FROM table WHERE pk = :pk AND owner = :userId`（有 owner 时）
+- 表无主键时返回 `TABLE_ERROR`
+- 记录不存在时 `data` 为 `null`，`code` 仍为 `OK`
+- 返回结果自动去掉 `owner` 字段
+
 ---
 
-### 5.6 受保护的表
+### 5.6 删除接口（URL 参数模式）
+
+#### DELETE /api/delete/:table — 按条件批量删除
+
+支持与 GET 完全相同的 WHERE 查询语法（字段条件、`or`/`and` 嵌套等），不支持 select/order/page/group。
+
+```
+DELETE /api/delete/:table?age=gt.30
+DELETE /api/delete/:table?name=like.zhang*
+DELETE /api/delete/:table?or=age.gt.50,name.eq.test
+```
+
+**响应**：`{ "code": "OK", "data": { "deleted": [被删除记录的主键列表] } }`
+
+#### DELETE /api/delete/:table/:pk — 按主键删除
+
+- SQL: `DELETE FROM table WHERE pk = :pk AND owner = :userId`
+- 表无主键时返回 `TABLE_ERROR`
+- 响应：`{ "code": "OK", "data": { "deleted": [被删除的主键值] } }`（如 `{ "deleted": [1] }`，未找到则 `{ "deleted": [] }`）
+
+---
+
+### 5.7 保存与更新接口
+
+#### POST /api/save/:table — 严格插入（存在则报错）
+
+- 请求体：单个 JSON 对象或 JSON 数组（批量创建）
+- 自动注入 `owner` 字段（有 owner 的表）
+- 主键冲突返回 `CONFLICT`
+- 成功返回：`{ "code": "OK", "data": { "created": [pk1, pk2, ...] } }`
+
+#### PUT /api/save/:table — Upsert（存在则更新，不存在则插入）
+
+- 请求体同 POST
+- 有主键且记录存在 → `UPDATE SET` 仅传入字段（增量覆盖，未传字段不修改）
+- 无主键或记录不存在 → `INSERT`
+- 成功返回：`{ "code": "OK", "data": { "created": [...], "updated": [...] } }`
+
+#### PATCH /api/save/:table — 严格更新（不存在则报错，必须包含主键）
+
+- 请求体：单个 JSON 对象或 JSON 数组（同 POST/PUT）
+- **必须包含主键字段**，记录必须已存在（否则返回 `NOT_FOUND`）
+- 仅更新传入的字段（增量更新）
+- 批量操作时使用事务
+- 成功返回：`{ "code": "OK", "data": { "updated": [pk1, pk2, ...] } }`
+
+#### POST /api/update/:table — 条件批量更新
+
+- 请求体：`{ "set": { "field": value, ... }, "where": <BodyWhereInput> }`
+- `set` 必填，至少一个字段
+- `where` 必填，不能为空（安全：防止全表更新）
+- 自动跳过 `set` 中的主键和 owner 字段
+- 事务：先 SELECT 受影响的主键，再执行 UPDATE
+- 自动应用 owner 过滤
+- 成功返回：`{ "code": "OK", "data": { "updated": [pk1, pk2, ...] } }`
+
+---
+
+### 5.8 受保护的表
 
 用户认证表（默认 `users`）**不允许**通过 CRUD/查询接口操作，必须使用 `/api/auth/*` 接口，直接访问返回 `FORBIDDEN`。
 

@@ -27,22 +27,24 @@ import RestBase, {
 
 ## 接口路由总览
 
-| 接口                       | 方法       | 说明                | 客户端方法                        |
-|:-------------------------|:---------|:------------------|:-----------------------------|
-| `/api/health`            | GET      | 健康检查              | `rb.health()`                |
-| `/api/auth/login`        | POST     | 登录                | `rb.auth.login()`            |
-| `/api/auth/register`     | POST     | 注册                | `rb.auth.register()`         |
-| `/api/auth/profile`      | GET      | 获取用户资料            | `rb.auth.getProfile()`       |
-| `/api/auth/profile`      | POST     | 更新用户资料            | `rb.auth.updateProfile()`    |
-| `/api/meta/tables`       | GET      | 所有表元数据            | `rb.tables()`                |
-| `/api/meta/tables/:name` | GET      | 单表元数据             | `rb.tableMeta(name)`         |
-| `/api/meta/sync`         | GET      | 同步表结构             | `rb.syncMeta()`              |
-| `/api/query/:table`      | **POST** | **Body 查询（前端推荐）** | `table.query().exec()`       |
-| `/api/delete/:table`     | **POST** | **Body 条件删除**     | `table.deleteWhere().exec()` |
-| `/api/data/:table`       | POST     | 创建                | `table.create()`             |
-| `/api/data/:table`       | PUT      | Upsert            | `table.put()`                |
-| `/api/data/:table/:id`   | GET      | 按主键获取             | `table.getByPk()`            |
-| `/api/data/:table/:id`   | DELETE   | 按主键删除             | `table.deleteByPk()`         |
+| 接口                         | 方法         | 说明             | 客户端方法                         |
+|:---------------------------|:-----------|:---------------|:------------------------------|
+| `/api/health`              | GET        | 健康检查           | `rb.health()`                 |
+| `/api/auth/login`          | POST       | 登录             | `rb.auth.login()`             |
+| `/api/auth/register`       | POST       | 注册             | `rb.auth.register()`          |
+| `/api/auth/profile`        | GET        | 获取用户资料         | `rb.auth.getProfile()`        |
+| `/api/auth/profile`        | POST       | 更新用户资料         | `rb.auth.updateProfile()`     |
+| `/api/meta/tables`         | GET        | 所有表元数据         | `rb.tables()`                 |
+| `/api/meta/tables/:name`   | GET        | 单表元数据          | `rb.tableMeta(name)`          |
+| `/api/meta/sync`           | GET        | 同步表结构          | `rb.syncMeta()`               |
+| `/api/query/:table`        | GET / POST | URL 查询 / Body 查询 | `table.query().exec()`        |
+| `/api/query/:table/:pk`    | GET        | 按主键获取          | `table.get(pk)`               |
+| `/api/delete/:table`       | DELETE / POST | URL 删除 / Body 删除 | `table.deleteWhere().exec()`  |
+| `/api/delete/:table/:pk`   | DELETE     | 按主键删除          | `table.delete(pk)`            |
+| `/api/update/:table`       | POST       | 条件批量更新         | `table.updateWhere().exec()`  |
+| `/api/save/:table`         | POST       | 严格插入（存在报错）     | `table.insert(data)`          |
+| `/api/save/:table`         | PUT        | Upsert（存在更新）   | `table.upsert(data)`          |
+| `/api/save/:table`         | PATCH      | 严格更新（不存在报错）    | `table.update(data)`          |
 
 ---
 
@@ -178,39 +180,45 @@ interface Product {
 const typedProducts = rb.table<Product>("products");
 ```
 
-| 方法                     | 说明                                 | 返回                                                        |
-|:-----------------------|:-----------------------------------|:----------------------------------------------------------|
-| `table.query()`        | 创建链式查询（POST /api/query/:table）     | `QueryBuilder<T>`                                         |
-| `table.getByPk(id)`    | 按主键获取（GET /api/data/:table/:id）    | `ApiResponse<T \| null>`                                  |
-| `table.create(data)`   | 创建（POST /api/data/:table）          | `ApiResponse<{ created: unknown[] }>`                     |
-| `table.put(data)`      | Upsert（PUT /api/data/:table）       | `ApiResponse<{ created: unknown[]; updated: unknown[] }>` |
-| `table.deleteByPk(id)` | 按主键删除（DELETE /api/data/:table/:id） | `ApiResponse<{ deleted: unknown[] }>`                     |
-| `table.deleteWhere()`  | 创建链式条件删除（POST /api/delete/:table）  | `DeleteBuilder`                                           |
+| 方法                       | 说明                                    | 返回                                                        |
+|:-------------------------|:--------------------------------------|:----------------------------------------------------------|
+| `table.query()`          | 创建链式查询（POST /api/query/:table）        | `QueryBuilder<T>`                                         |
+| `table.get(pk)`          | 按主键获取（GET /api/query/:table/:pk）      | `ApiResponse<T \| null>`                                  |
+| `table.insert(data)`     | 严格插入（POST /api/save/:table）           | `ApiResponse<{ created: unknown[] }>`                     |
+| `table.upsert(data)`     | Upsert（PUT /api/save/:table）          | `ApiResponse<{ created: unknown[]; updated: unknown[] }>` |
+| `table.update(data)`     | 严格更新（PATCH /api/save/:table）          | `ApiResponse<{ updated: unknown[] }>`                     |
+| `table.delete(pk)`       | 按主键删除（DELETE /api/delete/:table/:pk）  | `ApiResponse<{ deleted: unknown[] }>`                     |
+| `table.deleteWhere()`    | 创建链式条件删除（POST /api/delete/:table）     | `DeleteBuilder`                                           |
+| `table.updateWhere()`    | 创建链式条件更新（POST /api/update/:table）     | `UpdateBuilder`                                           |
 
 ### CRUD 示例
 
 ```ts
 // 按主键获取
-const one = await products.getByPk(42);
+const one = await products.get(42);
 // one.data → Product | null
 
-// 创建（单条）
-const cr = await products.create({ name: "Widget", price: 29.9, stock: 100 });
+// 严格插入（存在同 PK 则报错 CONFLICT）
+const cr = await products.insert({ name: "Widget", price: 29.9, stock: 100 });
 // cr.data → { created: [101] }  ← 新建记录的主键列表
 
-// 创建（批量）
-const batch = await products.create([
+// 批量插入
+const batch = await products.insert([
   { name: "A", price: 10, stock: 50 },
   { name: "B", price: 20, stock: 30 },
 ]);
 // batch.data → { created: [102, 103] }
 
-// Upsert（不存在创建，存在增量更新）
-const up = await products.put([{ id: 1, price: 88.8 }, { name: "New", price: 50 }]);
+// Upsert（不存在插入，存在增量更新）
+const up = await products.upsert([{ id: 1, price: 88.8 }, { name: "New", price: 50 }]);
 // up.data → { created: [104], updated: [1] }  ← 区分新建与更新
 
+// 严格更新（不存在报错 NOT_FOUND，必须带 PK）
+const upd = await products.update({ id: 1, price: 99.9 });
+// upd.data → { updated: [1] }  ← 被更新的主键列表
+
 // 按主键删除
-const del = await products.deleteByPk(1);
+const del = await products.delete(1);
 // del.data → { deleted: [1] }  ← 被删除的主键列表（未找到则 []）
 ```
 
@@ -403,6 +411,38 @@ await products.deleteWhere()
 
 ---
 
+## UpdateBuilder — 条件批量更新
+
+通过 `table.updateWhere()` 创建，内部使用 `POST /api/update/:table`。
+
+```ts
+// 单条件更新
+const res = await products.updateWhere()
+  .set({ price: 99.99, stock: 100 })
+  .where(eq("category", "Books"))
+  .exec();
+// res → { code: "OK", data: { updated: [3, 7, 12] } }  ← 被更新的主键列表
+
+// 复杂条件
+await products.updateWhere()
+  .set({ is_active: 0 })
+  .where(and(
+    lt("stock", 5),
+    or(eq("category", "Toys"), eq("category", "Food")),
+  ))
+  .exec();
+```
+
+| 方法             | 说明           | 链式 |
+|:---------------|:-------------|:---|
+| `.set(data)`   | 设置要更新的字段和值   | ✅  |
+| `.where(...c)` | 添加 WHERE 条件  | ✅  |
+| `.exec()`      | 执行更新         | —  |
+
+> **安全机制**：`where` 不允许为空（防止全表更新），`set` 中的主键和 owner 字段会被自动忽略。
+
+---
+
 ## 条件运算符速查
 
 | 函数                   | SQL           | 示例                          | 值类型         |
@@ -512,12 +552,19 @@ await products.deleteWhere()
   .where(le("rating", 1))
   .exec();
 
+// ── 条件更新 ──
+await products.updateWhere()
+  .set({ price: 99.99 })
+  .where(eq("category", "Books"))
+  .exec();
+
 // ── CRUD ──
-await products.create({ name: "New", price: 50, stock: 100 });
-await products.create([{ name: "A", price: 10 }, { name: "B", price: 20 }]);
-await products.put({ id: 1, price: 88 });
-await products.deleteByPk(99);
-const one = await products.getByPk(42);
+await products.insert({ name: "New", price: 50, stock: 100 });
+await products.insert([{ name: "A", price: 10 }, { name: "B", price: 20 }]);
+await products.upsert({ id: 1, price: 88 });
+await products.update({ id: 1, stock: 200 });
+await products.delete(99);
+const one = await products.get(42);
 ```
 
 ---

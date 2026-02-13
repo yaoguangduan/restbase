@@ -7,7 +7,7 @@
 - **零代码 CRUD** — 自动分析表结构，生成完整 REST 接口
 - **租户隔离** — `owner` 字段自动按用户隔离数据，支持 NULL 公开模式
 - **双鉴权** — JWT + Basic Auth 开箱即用
-- **两套查询** — URL 参数（CLI 调试）+ POST Body（前端推荐），支持复杂 WHERE / SELECT / ORDER / GROUP / 分页
+- **统一四路径 API** — `/api/query`（查询）、`/api/delete`（删除）、`/api/update`（条件更新）、`/api/data`（创建/按主键），URL 参数 + POST Body 双模式，支持复杂 WHERE / SELECT / ORDER / GROUP / 分页
 - **类型安全客户端** — 零依赖 TypeScript 客户端，链式 API，编译期推导 SELECT 返回类型
 - **静态文件托管** — 可选挂载前端打包产物，API 与前端同端口
 - **结构化日志** — pino + 文件滚动 + 请求追踪 ID
@@ -65,7 +65,7 @@ curl http://localhost:3333/api/health
 # → { "code": "OK", "data": { "status": "healthy", "port": 3333, "pid": 12345, "cwd": "/path/to/dir", "uptime": 60, "memory": {...}, "cpu": {...} } }
 
 # Basic Auth 查询
-curl -u admin:admin http://localhost:3333/api/data/products
+curl -u admin:admin http://localhost:3333/api/query/products
 ```
 
 ### 前端客户端

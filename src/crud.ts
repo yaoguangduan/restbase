@@ -23,7 +23,7 @@ import {
     zodHook, bodyQuerySchema, bodyDeleteSchema, bodyDataSchema,
     type BodyQuery, type BodyWhereInput,
 } from "./types.ts";
-import {db, getTable, isAuthTable, run, type TblMeta} from "./db.ts";
+import {getTable, isAuthTable, run, runTransaction, type TblMeta} from "./db.ts";
 import {buildBodyDeleteSQL, buildBodyListSQL, buildDeleteSQL, buildListSQL} from "./query.ts";
 
 /* ═══════════ 注册路由 ═══════════ */
@@ -207,7 +207,7 @@ export function registerCrudRoutes(app: Hono<AppEnv>) {
 
 /**
  * 在事务中先 SELECT 待删除的主键列表，再执行 DELETE，保证一致性。
- * 将 DELETE SQL 改写为 SELECT pk FROM ... WHERE ...
+ * 使用 db.begin() API 兼容 SQLite 和 MySQL。
  */
 async function transactionalDelete(
     tbl: TblMeta, deleteSql: string, values: unknown[],
@@ -220,17 +220,12 @@ async function transactionalDelete(
         /^DELETE\s+FROM/i,
         `SELECT ${q(tbl.pk)} FROM`,
     );
-    await db.unsafe("BEGIN");
-    try {
-        const rows = await run(selectSql, values);
+    return runTransaction(async (tx) => {
+        const rows = await tx(selectSql, values);
         const ids = rows.map((r: any) => r[tbl.pk!]);
-        await run(deleteSql, values);
-        await db.unsafe("COMMIT");
+        await tx(deleteSql, values);
         return ids;
-    } catch (err) {
-        await db.unsafe("ROLLBACK");
-        throw err;
-    }
+    });
 }
 
 /** 去掉 owner 字段 */

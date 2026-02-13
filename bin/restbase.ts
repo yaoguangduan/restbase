@@ -120,7 +120,23 @@ function getSelfCommand(): string[] {
 
 /** run — foreground, reads .env as-is */
 async function cmdRun() {
+    /* 前台启动也自动分配 SVR_NAME（如果用户未配置） */
+    if (!process.env.SVR_NAME) {
+        process.env.SVR_NAME = await autoAssignName();
+    }
     await import("../src/server.ts");
+}
+
+/** 自动分配一个递增的实例名称（1, 2, 3, ...），跳过已被在线实例占用的编号 */
+async function autoAssignName(): Promise<string> {
+    const usedNames = new Set<string>();
+    for (const inst of discoverInstances()) {
+        const health = await fetchHealth(inst.port);
+        if (health?.name) usedNames.add(health.name);
+    }
+    let n = 1;
+    while (usedNames.has(String(n))) n++;
+    return String(n);
 }
 
 /** start — daemon mode, waits for health check before reporting success */
@@ -137,10 +153,14 @@ async function cmdStart() {
         }
     }
 
+    // Auto-assign SVR_NAME if not set
+    const assignedName = process.env.SVR_NAME || await autoAssignName();
+
     // Build child env: silence console, ensure LOG_FILE for daemon
     const env: Record<string, string> = {
         ...(process.env as Record<string, string>),
         LOG_CONSOLE: "false",
+        SVR_NAME: assignedName,
     };
     if (!process.env.LOG_FILE) {
         env.LOG_FILE = join(LOGS_DIR, `${port}.log`);
@@ -184,7 +204,7 @@ async function cmdStart() {
     }
 
     if (healthy) {
-        console.log(`RestBase started (PID: ${pid}, port: ${port})`);
+        console.log(`RestBase started (name: ${assignedName}, PID: ${pid}, port: ${port})`);
     } else {
         console.error(`RestBase failed to start (PID: ${pid}, port: ${port})`);
         /* 读取 crash log 末尾帮助诊断 */
@@ -603,38 +623,42 @@ Usage:
 Commands:
   run              Start server in foreground (reads .env)
   start            Start server in background (daemon mode)
-  stop <pid|name|all>   Stop instance(s) by PID, SVR_NAME, or all
+  stop <name|pid|all>   Stop instance(s) by name, PID, or all
   status                Show all running background instances
-  log <pid|name>        Tail the log of an instance by PID or SVR_NAME
+  log <name|pid>        Tail the log of an instance
   env              Interactive .env configuration (create or reconfigure)
   version          Show version
   help             Show this help
 
 Examples:
+  restbase start              Start in background → auto-assigned name (1, 2, 3, ...)
   restbase run                Start in foreground
-  restbase start              Start in background (daemon)
   restbase status             List running instances with health status
-  restbase log 12345          Tail log by PID
-  restbase log my-api         Tail log by SVR_NAME
-  restbase stop 12345         Stop instance by PID
-  restbase stop my-api        Stop instance by SVR_NAME
+  restbase log 1              Tail log by name
+  restbase stop 1             Stop instance by name
   restbase stop all           Stop all background instances
   restbase env                Interactive .env setup (reconfigure if exists)
+
+Instance naming:
+  Instances are auto-named (1, 2, 3, ...) unless SVR_NAME is set in .env.
+  Use the name with 'log', 'stop' commands for easy management.
 
 Configuration:
   All settings are read from .env in the current working directory.
   Run 'restbase env' for interactive configuration (create or update .env).
-
-Instance discovery:
-  Background instances are discovered via 'ps' — no PID files needed.
-  Instance details (name, log path, uptime…) are fetched from /api/health.
 `);
 }
 
 /* ═══════════ Main ═══════════ */
 
-const command = process.argv[2] || "run";
+const command = process.argv[2];
 const arg1 = process.argv[3];
+
+/* 无参数时打印帮助 */
+if (!command || command.startsWith("-") && command !== "-v" && command !== "--version" && command !== "-h" && command !== "--help") {
+    printHelp();
+    process.exit(0);
+}
 
 switch (command) {
     case "run":

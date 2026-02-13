@@ -37,19 +37,37 @@ export const isAuthTable = (name: string) => name === cfg.authTable;
 
 export const db = new Bun.SQL(cfg.db);
 
+/** 转换 $1/$2 占位符为 MySQL 的 ? 格式（跳过 SQL 字符串字面量） */
+function convertPlaceholders(sql: string): string {
+    return cfg.isSqlite ? sql : sql.replace(
+        /'[^']*'|(\$\d+)/g,
+        (m, p1) => p1 ? "?" : m,
+    );
+}
+
 /** 执行 SQL（DEBUG 模式自动打印完整 SQL + 参数 + requestId） */
 export async function run(sql: string, values?: unknown[]): Promise<any[]> {
     if (cfg.logLevel === "DEBUG") {
         const requestId = reqStore.getStore()?.requestId;
         log.debug({requestId, sql, params: values}, "SQL");
     }
-    /* MySQL 的 unsafe() 不支持 $1/$2 占位符，需转换为 ?
-       跳过 SQL 字符串字面量内部的内容，避免误替换 */
-    const finalSql = cfg.isSqlite ? sql : sql.replace(
-        /'[^']*'|(\$\d+)/g,
-        (m, p1) => p1 ? "?" : m,
-    );
-    return (await db.unsafe(finalSql, values)) as any[];
+    return (await db.unsafe(convertPlaceholders(sql), values)) as any[];
+}
+
+/** 在事务中执行回调（兼容 SQLite 和 MySQL） */
+export async function runTransaction<T>(fn: (runTx: typeof run) => Promise<T>): Promise<T> {
+    let result: T;
+    await db.begin(async (tx) => {
+        const runTx = async (sql: string, values?: unknown[]): Promise<any[]> => {
+            if (cfg.logLevel === "DEBUG") {
+                const requestId = reqStore.getStore()?.requestId;
+                log.debug({requestId, sql, params: values}, "SQL(tx)");
+            }
+            return (await tx.unsafe(convertPlaceholders(sql), values)) as any[];
+        };
+        result = await fn(runTx);
+    });
+    return result!;
 }
 
 /* ═══════════ 初始化入口 ═══════════ */
